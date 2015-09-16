@@ -4,13 +4,14 @@
 \alias{hdnom.validate}
 \title{Validate High-Dimensional Cox models with time-dependent AUC}
 \usage{
-hdnom.validate(x, time, event, alpha, lambda, pen.factor = NULL,
-  method = c("bootstrap", "cv", "repeated.cv"), boot.times = NULL,
-  nfolds = NULL, rep.times = NULL, tauc.type = c("CD", "SZ", "UNO"),
-  tauc.time, trace = TRUE)
+hdnom.validate(x, time, event, model.type = c("lasso", "alasso", "flasso",
+  "enet", "aenet", "mcp", "mnet", "scad", "snet"), alpha, lambda,
+  pen.factor = NULL, gamma, method = c("bootstrap", "cv", "repeated.cv"),
+  boot.times = NULL, nfolds = NULL, rep.times = NULL,
+  tauc.type = c("CD", "SZ", "UNO"), tauc.time, trace = TRUE)
 }
 \arguments{
-\item{x}{Matrix of training data used for the \code{glmnet} object;
+\item{x}{Matrix of training data used for fitting the model;
 on which to run the validation.}
 
 \item{time}{Survival time.
@@ -19,15 +20,23 @@ Must be of the same length with the number of rows as \code{x}.}
 \item{event}{Status indicator, normally 0 = alive, 1 = dead.
 Must be of the same length with the number of rows as \code{x}.}
 
-\item{alpha}{Value of the elastic-net mixing parameter alpha in
-glmnet. \code{alpha=1}: lasso; \code{alpha=0}: ridge.
-From the Cox model you have built.}
+\item{model.type}{Model type to validate. Could be one of \code{"lasso"},
+\code{"alasso"}, \code{"flasso"}, \code{"enet"}, \code{"aenet"},
+\code{"mcp"}, \code{"mnet"}, \code{"scad"}, or \code{"snet"}.}
+
+\item{alpha}{Value of the elastic-net mixing parameter alpha for
+\code{enet}, \code{aenet}, \code{mnet}, and \code{snet} models.
+\code{alpha=1}: lasso (l1) penalty; \code{alpha=0}: ridge (l2) penalty.
+Note that for \code{mnet} and \code{snet} models,
+\code{alpha} can be set to very close to 0 but not 0 exactly.}
 
 \item{lambda}{Value of the penalty parameter lambda to use in the
-glmnet fits on the resampled data. From the Cox model you have built.}
+model fits on the resampled data. From the built Cox model.}
 
 \item{pen.factor}{Penalty factors to apply to each coefficient.
-From the \emph{adaptive} penalized Cox model you have built.}
+From the built \emph{adaptive lasso} or \emph{adaptive elastic-net} model.}
+
+\item{gamma}{Value of the model parameter gamma for MCP/SCAD/Mnet/Snet models.}
 
 \item{method}{Validation method.
 Could be \code{"bootstrap"}, \code{"cv"}, or \code{"repeated.cv"}.}
@@ -47,7 +56,8 @@ Including \code{"CD"} proposed by Chambless and Diao (2006).,
 \item{tauc.time}{Numeric vector. Time points at which to evaluate
 the time-dependent AUC.}
 
-\item{trace}{Logical. Print trace or not. Default is \code{TRUE}.}
+\item{trace}{Logical. Output the validation progress or not.
+Default is \code{TRUE}.}
 }
 \description{
 Validate High-Dimensional Cox models with time-dependent AUC
@@ -70,19 +80,19 @@ cvfit = cv.glmnet(x, Surv(time, event), family = "cox", nfolds = 5)
 # Model validation by bootstrap with time-dependent AUC
 # Normally boot.times should be set to 200 or more,
 # we set it to 3 here only to save example running time.
-val.boot = hdnom.validate(x, time, event,
+val.boot = hdnom.validate(x, time, event, model.type = 'lasso',
                           alpha = 1, lambda = cvfit$lambda.1se,
                           method = "bootstrap", boot.times = 3,
                           tauc.type = "UNO", tauc.time = seq(0.25, 2, 0.25) * 365)
 
 # Model validation by 10-fold cross-validation with time-dependent AUC
-val.cv = hdnom.validate(x, time, event,
+val.cv = hdnom.validate(x, time, event, model.type = 'lasso',
                         alpha = 1, lambda = cvfit$lambda.1se,
                         method = "cv", nfolds = 5,
                         tauc.type = "UNO", tauc.time = seq(0.25, 2, 0.25) * 365)
 
 # Model validation by repeated cross-validation with time-dependent AUC
-val.repcv = hdnom.validate(x, time, event,
+val.repcv = hdnom.validate(x, time, event, model.type = 'lasso',
                            alpha = 1, lambda = cvfit$lambda.1se,
                            method = "repeated.cv", nfolds = 5, rep.times = 3,
                            tauc.type = "UNO", tauc.time = seq(0.25, 2, 0.25) * 365)

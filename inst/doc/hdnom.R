@@ -34,14 +34,14 @@ x.df = as.data.frame(x)
 dd = datadist(x.df)
 options(datadist = "dd")
 
-nom = hdnom.nomogram(fit, x, time, event, x.df,
+nom = hdnom.nomogram(fit, model.type = "aenet", x, time, event, x.df,
                      lambda = lambda, pred.at = 365 * 2,
                      funlabel = "2-Year Overall Survival Probability")
 plot(nom)
 
 ## ------------------------------------------------------------------------
 set.seed(11)
-val = hdnom.validate(x, time, event,
+val = hdnom.validate(x, time, event, model.type = "aenet",
                      alpha = alpha, lambda = lambda, pen.factor = adapen,
                      method = "bootstrap", boot.times = 10,
                      tauc.type = "UNO", tauc.time = seq(1, 5, 0.5) * 365,
@@ -53,7 +53,7 @@ summary(val)
 plot(val, ylim = c(0.6, 0.8), xaxt.label = seq(1, 5, 0.5))
 
 ## ------------------------------------------------------------------------
-cal = hdnom.calibrate(x, time, event,
+cal = hdnom.calibrate(x, time, event, model.type = "aenet",
                       alpha = alpha, lambda = lambda, pen.factor = adapen,
                       method = "bootstrap", boot.times = 10,
                       pred.at = 365 * 5, ngroup = 5,

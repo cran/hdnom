@@ -10,7 +10,7 @@
 
 <meta name="author" content="Miaozhu Li &lt;miaozhu.li@duke.edu&gt;  Nan Xiao &lt;nanx@uchicago.edu&gt;" />
 
-<meta name="date" content="2015-08-27" />
+<meta name="date" content="2015-09-16" />
 
 <title>Building Nomograms for High-Dimensional Cox Models</title>
 
@@ -72,7 +72,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <div id="header">
 <h1 class="title">Building Nomograms for High-Dimensional Cox Models</h1>
 <h4 class="author"><em>Miaozhu Li &lt;<a href="mailto:miaozhu.li@duke.edu">miaozhu.li@duke.edu</a>&gt; <br> Nan Xiao &lt;<a href="mailto:nanx@uchicago.edu">nanx@uchicago.edu</a>&gt;</em></h4>
-<h4 class="date"><em>2015-08-27</em></h4>
+<h4 class="date"><em>2015-09-16</em></h4>
 </div>
 
 <div id="TOC">
@@ -96,12 +96,56 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <h1><span class="header-section-number">2</span> Build Penalized Cox Models</h1>
 <p>Penalized Cox models usually needs parameters tuning. For example, the elastic-net model requires to tune the <span class="math inline">\(\ell_1\)</span>-<span class="math inline">\(\ell_2\)</span> penalty trade-off parameter <span class="math inline">\(\alpha\)</span>, and the regularization parameter <span class="math inline">\(\lambda\)</span>.</p>
 <p>To free the users from the tedious and error-prone parameter tuning process, <code>hdnom</code> provides several functions for automatic parameter tuning and model selection, including the following model types:</p>
-<ul>
-<li><code>hdcox.lasso()</code> - lasso model;</li>
-<li><code>hdcox.alasso()</code> - adaptive lasso model;</li>
-<li><code>hdcox.enet()</code> - elastic-net model;</li>
-<li><code>hdcox.aenet()</code> - adaptive elastic-net model.</li>
-</ul>
+<table>
+<colgroup>
+<col width="26%"></col>
+<col width="47%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Function Name</th>
+<th align="left">Model Type</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><p><code>hdcox.lasso()</code></p></td>
+<td align="left"><p>Lasso model</p></td>
+</tr>
+<tr class="even">
+<td align="left"><p><code>hdcox.alasso()</code></p></td>
+<td align="left"><p>Adaptive lasso model</p></td>
+</tr>
+<tr class="odd">
+<td align="left"><p><code>hdcox.flasso()</code></p></td>
+<td align="left"><p>Fused lasso model</p></td>
+</tr>
+<tr class="even">
+<td align="left"><p><code>hdcox.enet()</code></p></td>
+<td align="left"><p>Elastic-net model</p></td>
+</tr>
+<tr class="odd">
+<td align="left"><p><code>hdcox.aenet()</code></p></td>
+<td align="left"><p>Adaptive elastic-net model</p></td>
+</tr>
+<tr class="even">
+<td align="left"><p><code>hdcox.mcp()</code></p></td>
+<td align="left"><p>MCP model</p></td>
+</tr>
+<tr class="odd">
+<td align="left"><p><code>hdcox.mnet()</code></p></td>
+<td align="left"><p>Mnet (MCP + elastic-net) model</p></td>
+</tr>
+<tr class="even">
+<td align="left"><p><code>hdcox.scad()</code></p></td>
+<td align="left"><p>SCAD model</p></td>
+</tr>
+<tr class="odd">
+<td align="left"><p><code>hdcox.snet()</code></p></td>
+<td align="left"><p>Snet (SCAD + elastic-net) model</p></td>
+</tr>
+</tbody>
+</table>
 <p>In the next, we will use the imputed SMART study data <span class="citation">(Steyerberg 2008)</span> to demonstrate a complete process of model building, nomogram plotting, model validation, and model calibration with <code>hdnom</code>.</p>
 <p>Load the <code>smart</code> dataset:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(<span class="st">&quot;smart&quot;</span>)
@@ -139,7 +183,7 @@ x.df =<span class="st"> </span><span class="kw">as.data.frame</span>(x)
 dd =<span class="st"> </span><span class="kw">datadist</span>(x.df)
 <span class="kw">options</span>(<span class="dt">datadist =</span> <span class="st">&quot;dd&quot;</span>)
 
-nom =<span class="st"> </span><span class="kw">hdnom.nomogram</span>(fit, x, time, event, x.df,
+nom =<span class="st"> </span><span class="kw">hdnom.nomogram</span>(fit, <span class="dt">model.type =</span> <span class="st">&quot;aenet&quot;</span>, x, time, event, x.df,
                      <span class="dt">lambda =</span> lambda, <span class="dt">pred.at =</span> <span class="dv">365</span> *<span class="st"> </span><span class="dv">2</span>,
                      <span class="dt">funlabel =</span> <span class="st">&quot;2-Year Overall Survival Probability&quot;</span>)
 <span class="kw">plot</span>(nom)</code></pre></div>
@@ -152,13 +196,14 @@ nom =<span class="st"> </span><span class="kw">hdnom.nomogram</span>(fit, x, tim
 <p>It is a common practice to utilize resampling methods to validate the predictive performance of a Cox model. Bootstrap, k-fold cross-validation, and repeated k-fold cross-validation are the mostly employed resampling methods for such purpose. <code>hdnom.validate</code> allows us to assess the model performance by time-dependent AUC (Area Under the ROC Curve) with the above three resampling methods.</p>
 <p>Here, we validate the adaptive elastic-net model performance by time-dependent AUC with bootstrap resampling, at every half year from the first year to the fifth year:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set.seed</span>(<span class="dv">11</span>)
-val =<span class="st"> </span><span class="kw">hdnom.validate</span>(x, time, event,
+val =<span class="st"> </span><span class="kw">hdnom.validate</span>(x, time, event, <span class="dt">model.type =</span> <span class="st">&quot;aenet&quot;</span>,
                      <span class="dt">alpha =</span> alpha, <span class="dt">lambda =</span> lambda, <span class="dt">pen.factor =</span> adapen,
                      <span class="dt">method =</span> <span class="st">&quot;bootstrap&quot;</span>, <span class="dt">boot.times =</span> <span class="dv">10</span>,
                      <span class="dt">tauc.type =</span> <span class="st">&quot;UNO&quot;</span>, <span class="dt">tauc.time =</span> <span class="kw">seq</span>(<span class="dv">1</span>, <span class="dv">5</span>, <span class="fl">0.5</span>) *<span class="st"> </span><span class="dv">365</span>,
                      <span class="dt">trace =</span> <span class="ot">FALSE</span>)
 val</code></pre></div>
 <pre><code>## High-Dimensional Cox Model Validation Object
+## Model type: aenet 
 ## Validation method: bootstrap
 ## Bootstrap samples: 10 
 ## glmnet model alpha: 0.15 
@@ -194,7 +239,7 @@ val</code></pre></div>
 <p>Measuring how far the model predictions are from actual survival outcomes is known as <em>calibration</em>. Calibration can be assessed by plotting the predicted probabilities from the model versus actual survival probabilities.</p>
 <p><code>hdnom.calibrate()</code> provides non-resampling and resampling methods for model calibration, including direct fitting, bootstrap resampling, k-fold cross-validation and repeated cross-validation.</p>
 <p>For example, to calibrate the model with the bootstrap method:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cal =<span class="st"> </span><span class="kw">hdnom.calibrate</span>(x, time, event,
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cal =<span class="st"> </span><span class="kw">hdnom.calibrate</span>(x, time, event, <span class="dt">model.type =</span> <span class="st">&quot;aenet&quot;</span>,
                       <span class="dt">alpha =</span> alpha, <span class="dt">lambda =</span> lambda, <span class="dt">pen.factor =</span> adapen,
                       <span class="dt">method =</span> <span class="st">&quot;bootstrap&quot;</span>, <span class="dt">boot.times =</span> <span class="dv">10</span>,
                       <span class="dt">pred.at =</span> <span class="dv">365</span> *<span class="st"> </span><span class="dv">5</span>, <span class="dt">ngroup =</span> <span class="dv">5</span>,
@@ -203,6 +248,7 @@ cal</code></pre></div>
 <pre><code>## High-Dimensional Cox Model Calibration Object
 ## Calibration method: bootstrap
 ## Bootstrap samples: 10 
+## Model type: aenet 
 ## glmnet model alpha: 0.15 
 ## glmnet model lambda: 2.559313e+12 
 ## glmnet model penalty factor: specified
