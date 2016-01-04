@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/road2stat/hdnom.png?branch=master)](https://travis-ci.org/road2stat/hdnom)
 [![Downloads from the RStudio CRAN mirror](http://cranlogs.r-pkg.org/badges/hdnom)](http://cran.rstudio.com/package=hdnom)
 
-`hdnom` builds nomograms for high-dimensional Cox models.
+`hdnom` builds nomograms for high-dimensional data with penalized Cox models.
 
 ## Installation
 
@@ -30,6 +30,8 @@ and you are all set. See [the vignette](https://cran.r-project.org/web/packages/
 
 ## Links
 
-* hdnom website: [http://hdnom.org](http://hdnom.org)
-* hdnom on CRAN: [https://cran.r-project.org/web/packages/hdnom/](https://cran.r-project.org/web/packages/hdnom/)
-* hdnom on GitHub: [https://github.com/road2stat/hdnom/](https://github.com/road2stat/hdnom/)
+* hdnom project: [http://hdnom.org](http://hdnom.org)
+* hdnom web app: [http://hdnom.io](http://hdnom.io)
+* hdnom appmaker: [https://github.com/road2stat/hdnom-appmaker](https://github.com/road2stat/hdnom-appmaker)
+* hdnom on CRAN: [https://cran.r-project.org/package=hdnom](https://cran.r-project.org/package=hdnom)
+* hdnom on GitHub: [https://github.com/road2stat/hdnom](https://github.com/road2stat/hdnom)
