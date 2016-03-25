@@ -1,12 +1,12 @@
 Package: hdnom
 Type: Package
 Title: Nomograms for High-Dimensional Cox Models
-Version: 3.0
-Date: 2016-01-03
+Version: 3.6
+Date: 2016-03-24
 Author: Miaozhu Li <miaozhu.li@duke.edu>, Nan Xiao <nanx@uchicago.edu>
 Maintainer: Nan Xiao <nanx@uchicago.edu>
 Description: Build nomograms for high-dimensional Cox models, with support for
-    reproducible model validation, calibration and comparison.
+    reproducible model validation, calibration, and comparison.
 License: GPL
 LazyData: TRUE
 VignetteBuilder: knitr
@@ -18,6 +18,6 @@ Imports: survival, glmnet, penalized, ncvreg, rms, foreach, survAUC,
 Suggests: knitr, doParallel, Hmisc, mice
 RoxygenNote: 5.0.1
 NeedsCompilation: no
-Packaged: 2016-01-04 17:53:52 UTC; jimmy
+Packaged: 2016-03-24 23:06:55 UTC; jimmy
 Repository: CRAN
-Date/Publication: 2016-01-04 22:18:10
+Date/Publication: 2016-03-25 00:29:07
