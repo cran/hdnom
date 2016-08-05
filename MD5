@@ -1,4 +1,4 @@
-c3ca348bffc13fffd02230143b409a7f *DESCRIPTION
+707ee4e40366feef4870f8014ccd897a *DESCRIPTION
 1f9a0c5d74361df18b1c18f75c41b1ca *NAMESPACE
 1941c92b33249770c0d4c70c4271aae4 *NEWS.md
 1bb6ff1deeab3d8507e7e1bb5d64c8fe *R/1.hdnom.models.R
@@ -13,7 +13,7 @@ c5cebb16415cb6d07db61e4f22fdd9fe *R/4.hdnom.calibrate.R
 376f583aaf90c06e1efa459755219aaa *R/8.hdnom.logrank.R
 bfe0711f517578cee4c695e23580f886 *R/9.hdnom.compare.validate.R
 c6d05dec907dd16a6558b8204f8595da *R/hdnom-datalist.R
-e0ed2e5bb334dda17260b58b6f2dee7e *R/hdnom-package.R
+301792f20a197147f8db1dccd90e7f30 *R/hdnom-package.R
 99384f5df3d85664add33541d98f1567 *README.md
 19ec30c6d58d2701e2c758e2380e4b07 *TODO
 148ae8534d7dc47202a5f4ab917964b7 *build/vignette.rds
@@ -21,7 +21,7 @@ e0ed2e5bb334dda17260b58b6f2dee7e *R/hdnom-package.R
 a4a2efd23b107c3abf345fbf0cebceaa *data/smarto.rda
 b9057f2c286a0ff6c8c2233c4a5cafc6 *inst/doc/hdnom.R
 0b35a0fe9efbcbac4a91efd11001d8d8 *inst/doc/hdnom.Rmd
-e72bf3db2432b9fd505dbffff0c7f1f3 *inst/doc/hdnom.html
+75e40b32f340ffde67c921d339b6d1b5 *inst/doc/hdnom.html
 302b97de0780ac7727ba473c452d4bc9 *man/glmnet.basesurv.Rd
 c0d8f1065d3cdc61052edcb24f56a47e *man/glmnet.calibrate.internal.pred.Rd
 ddf1ffd3c3c4b5cb267aba92361ac057 *man/glmnet.external.calibrate.internal.pred.Rd
@@ -38,7 +38,7 @@ e938dd7e21d5ffd5cd7dde8ed9c90c19 *man/hdcox.mcp.Rd
 33c0357d358a8732eac42b04537936b2 *man/hdcox.mnet.Rd
 6ce98fc98a747e2069a256b8b7bee464 *man/hdcox.scad.Rd
 4b3814d74603fff70c627cad67538061 *man/hdcox.snet.Rd
-2af1eedfed8de05a00a391b22329def1 *man/hdnom-package.Rd
+d408eb565f88a67ddd9529509b4eeef9 *man/hdnom-package.Rd
 d2601ac5c88b181f87590d8ba26a55d2 *man/hdnom.calibrate.Rd
 719cb7acd40a17a87a934e628ababb83 *man/hdnom.calibrate.internal.true.Rd
 47fae60831221f25855c8305ec640286 *man/hdnom.compare.calibrate.Rd
