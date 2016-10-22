@@ -1,4 +1,4 @@
-707ee4e40366feef4870f8014ccd897a *DESCRIPTION
+e5de0c8f5488833fd6acbc53421cfff7 *DESCRIPTION
 1f9a0c5d74361df18b1c18f75c41b1ca *NAMESPACE
 1941c92b33249770c0d4c70c4271aae4 *NEWS.md
 1bb6ff1deeab3d8507e7e1bb5d64c8fe *R/1.hdnom.models.R
@@ -14,14 +14,15 @@ c5cebb16415cb6d07db61e4f22fdd9fe *R/4.hdnom.calibrate.R
 bfe0711f517578cee4c695e23580f886 *R/9.hdnom.compare.validate.R
 c6d05dec907dd16a6558b8204f8595da *R/hdnom-datalist.R
 301792f20a197147f8db1dccd90e7f30 *R/hdnom-package.R
-99384f5df3d85664add33541d98f1567 *README.md
+814aca796bbd2ce6c2e49349cc006813 *README.md
 19ec30c6d58d2701e2c758e2380e4b07 *TODO
 148ae8534d7dc47202a5f4ab917964b7 *build/vignette.rds
 4ee4bc2f8cd3987ab2ef7b2202c1ad6a *data/smart.rda
 a4a2efd23b107c3abf345fbf0cebceaa *data/smarto.rda
+42c87498011934a81153da5bb7233351 *inst/CITATION
 b9057f2c286a0ff6c8c2233c4a5cafc6 *inst/doc/hdnom.R
-0b35a0fe9efbcbac4a91efd11001d8d8 *inst/doc/hdnom.Rmd
-75e40b32f340ffde67c921d339b6d1b5 *inst/doc/hdnom.html
+79a471ba7ba878bf3842591b96f293b4 *inst/doc/hdnom.Rmd
+fc2237629217f66850f65a40aa049154 *inst/doc/hdnom.html
 302b97de0780ac7727ba473c452d4bc9 *man/glmnet.basesurv.Rd
 c0d8f1065d3cdc61052edcb24f56a47e *man/glmnet.calibrate.internal.pred.Rd
 ddf1ffd3c3c4b5cb267aba92361ac057 *man/glmnet.external.calibrate.internal.pred.Rd
@@ -95,7 +96,7 @@ e2ae878c2677587ed7390154dbf329ad *man/summary.hdnom.compare.validate.Rd
 6c9ad3a6c30017075f024ce1a7e759f4 *man/summary.hdnom.external.validate.Rd
 3fd41af8ff34021f800d2e38c5f805b6 *man/summary.hdnom.validate.Rd
 adaa3f41b898167391cbc5ada403b404 *vignettes/aenetfit.rds
-0b35a0fe9efbcbac4a91efd11001d8d8 *vignettes/hdnom.Rmd
-da54c947901575764e1f463d3f884a25 *vignettes/hdnom.bib
-3ff5cbee197c85e65a9d0cdb01b90ba6 *vignettes/hdnom.css
-4bdd404531bfce6fa9250ef85fa16491 *vignettes/header.html
+79a471ba7ba878bf3842591b96f293b4 *vignettes/hdnom.Rmd
+9b3bf6214e28afb641992b19e82beb44 *vignettes/hdnom.bib
+e7e11c89651f87e0a8197f6f40b8c4df *vignettes/hdnom.css
+71fbc96142a681763030b2e8a9d97010 *vignettes/header.html
