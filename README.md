@@ -1,10 +1,32 @@
-# hdnom
+# hdnom  <a href="http://hdnom.org"><img src="http://nanx.me/images/project-hdnom.png" align="right" alt="logo" height="180" width="180" /></a>
 
 [![Build Status](https://travis-ci.org/road2stat/hdnom.svg?branch=master)](https://travis-ci.org/road2stat/hdnom)
+[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/road2stat/hdnom?branch=master&svg=true)](https://ci.appveyor.com/project/road2stat/hdnom)
 [![CRAN Version](http://www.r-pkg.org/badges/version/hdnom)](https://cran.r-project.org/package=hdnom)
 [![Downloads from the RStudio CRAN mirror](http://cranlogs.r-pkg.org/badges/hdnom)](http://cranlogs.r-pkg.org/badges/hdnom)
 
 `hdnom` builds nomograms for high-dimensional data with penalized Cox models.
+
+## Paper Citation
+
+Formatted citation for [the preprint](http://dx.doi.org/10.1101/065524):
+
+Nan Xiao, Qing-Song Xu, and Miao-Zhu Li. "hdnom: Building Nomograms for Penalized Cox Models with High-Dimensional Survival Data." bioRxiv (2016): 065524; doi: http://dx.doi.org/10.1101/065524
+
+BibTeX entry:
+
+```
+@article {hdnompreprint2016,
+	author = {Xiao, Nan and Xu, Qing-Song and Li, Miao-Zhu},
+	title = {hdnom: Building Nomograms for Penalized Cox Models with High-Dimensional Survival Data},
+	year = {2016},
+	doi = {10.1101/065524},
+	publisher = {Cold Spring Harbor Labs Journals},
+	URL = {http://biorxiv.org/content/early/2016/08/23/065524},
+	eprint = {http://biorxiv.org/content/early/2016/08/23/065524.full.pdf},
+	journal = {bioRxiv}
+}
+```
 
 ## Installation
 
@@ -28,27 +50,6 @@ library("hdnom")
 ```
 
 and you are all set. See [the vignette](http://hdnom.org/doc/) (can also be opened with `vignette("hdnom")` in R) for a quick-start guide.
-
-## Paper Citation
-
-Formatted citation for [the preprint](http://dx.doi.org/10.1101/065524):
-
-Nan Xiao, Qing-Song Xu, and Miao-Zhu Li. "hdnom: Building Nomograms for Penalized Cox Models with High-Dimensional Survival Data." bioRxiv (2016): 065524; doi: http://dx.doi.org/10.1101/065524
-
-BibTeX entry:
-
-```
-@article {hdnompreprint2016,
-	author = {Xiao, Nan and Xu, Qing-Song and Li, Miao-Zhu},
-	title = {hdnom: Building Nomograms for Penalized Cox Models with High-Dimensional Survival Data},
-	year = {2016},
-	doi = {10.1101/065524},
-	publisher = {Cold Spring Harbor Labs Journals},
-	URL = {http://biorxiv.org/content/early/2016/08/23/065524},
-	eprint = {http://biorxiv.org/content/early/2016/08/23/065524.full.pdf},
-	journal = {bioRxiv}
-}
-```
 
 ## Links
 
