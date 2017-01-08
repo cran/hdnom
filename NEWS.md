@@ -1,30 +1,52 @@
+# hdnom 4.6 (2017-01-07)
+
+## Bug Fixes
+
+- Fixed issues in parameter tuning and cross-validation procedures for
+fused lasso models ([afc49c9](https://github.com/road2stat/hdnom/commit/afc49c9ad952edd5881a3e2f14a3503981d213c7)).
+The user-visible change is that two parameters `lambda1` and `lambda2`
+instead of a single "lambda" are now required to fit, validate, and
+calibrate fused lasso models.
+
+## Improvements
+
+- The argument `lambda` in `hdnom.nomogram` is no longer needed and has
+been deprecated.
+- Allow users to specify `eps` and `max.iter` for MCP and SCAD penalty
+related models. Setting the default values to be `1e-4` and `10000`,
+which is consistent with ncvreg 3.8-0.
+
 # hdnom 4.5 (2016-12-24)
 
 ## Bug Fixes
 
-- Fixed vanishing axis problem in Kaplan-Meier plot `hdnom.kmplot()` under ggplot2 2.2.0, which is caused by a previous workaround for a bug introduced in ggplot2 2.1.0.
-- Fixed potential convergence issues for examples under ncvreg >= 3.7-0 new convergence criterion, by increasing `max.iter` for `ncvsurv` to a substantially higher value (5e+4).
+- Fixed vanishing axis problem in Kaplan-Meier plot `hdnom.kmplot()` under
+ggplot2 2.2.0, which is caused by a previous workaround for a bug introduced
+in ggplot2 2.1.0.
+- Fixed potential convergence issues for examples under ncvreg >= 3.7-0 new
+convergence criterion, by increasing `max.iter` for `ncvsurv` to a
+substantially higher value (5e+4).
 - Fixed single lambda support issues in `ncvsurv` under ncvreg >= 3.7-0.
 
 ## Improvements
 
-- Added Windows continuous integration using AppVeyor
+- Added Windows continuous integration using AppVeyor.
 - New website design for hdnom.org: consistent with the web application hdnom.io.
 
 # hdnom 4.0 (2016-07-05)
 
 ## Improvements
 
-- More concrete examples for several functions
+- More concrete examples for several functions.
 - Introduce argument `ylim` for `plot.hdnom.validate()`,
   `plot.hdnom.external.validate()`, and `plot.hdnom.compare.validate()`
-  [#4](https://github.com/road2stat/hdnom/issues/4).
+  ([#4](https://github.com/road2stat/hdnom/issues/4)).
 
 # hdnom 3.7 (2016-03-25)
 
 ## Bug Fixes
 
-- Removed one redundant color from the lancet color palette
+- Removed one redundant color from the lancet color palette.
 
 # hdnom 3.6 (2016-03-24)
 
@@ -35,11 +57,11 @@
 
 ## Bug Fixes
 
-- Fixed vanishing axis problem in Kaplan-Meier plot due to ggplot2 2.1.0 update
+- Fixed vanishing axis problem in Kaplan-Meier plot due to ggplot2 2.1.0 update.
 
 ## Improvements
 
-- New CSS style for the HTML vignette
+- New CSS style for the HTML vignette.
 
 # hdnom 3.0 (2016-01-03)
 

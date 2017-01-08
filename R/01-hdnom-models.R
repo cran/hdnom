@@ -17,23 +17,23 @@
 glmnet.tune.alpha = function(..., alphas, seed, parallel) {
 
   if (!parallel) {
-    modelList = vector('list', length(alphas))
+    model_list = vector('list', length(alphas))
     for (i in 1L:length(alphas)) {
       set.seed(seed)
-      modelList[[i]] = cv.glmnet(..., alpha = alphas[i])
+      model_list[[i]] = cv.glmnet(..., alpha = alphas[i])
     }
   } else {
-    modelList <- foreach(alphas = alphas) %dopar% {
+    model_list <- foreach(alphas = alphas) %dopar% {
       set.seed(seed)
       cv.glmnet(..., alpha = alphas)
     }
   }
 
-  # Choose model for best lambda first (then alpha)
-  # Criterion: penalized partial likelihood
-  errors = unlist(lapply(modelList, function(x) min(sqrt(x$cvm))))
+  # select model for best lambda first (then alpha)
+  # criterion: penalized partial likelihood
+  errors = unlist(lapply(model_list, function(x) min(sqrt(x$cvm))))
 
-  return(list('best.model' = modelList[[which.min(errors)]],
+  return(list('best.model' = model_list[[which.min(errors)]],
               'best.alpha' = alphas[which.min(errors)]))
 
 }
@@ -77,9 +77,9 @@ glmnet.tune.alpha = function(..., alphas, seed, parallel) {
 #' # registerDoParallel(detectCores())
 #' # then set hdcox.aenet(..., parallel = TRUE).
 #'
-#' # Fit Cox model by adaptive elastic-net penalization
-#' aenetfit = hdcox.aenet(x, y, nfolds = 3, alphas = c(0.3, 0.7),
-#'                        rule = "lambda.1se", seed = c(5, 7))
+#' # Fit Cox model with adaptive elastic-net penalty
+#' fit = hdcox.aenet(x, y, nfolds = 3, alphas = c(0.3, 0.7),
+#'                   rule = "lambda.1se", seed = c(5, 7))
 #'
 #' # Prepare data for hdnom.nomogram
 #' x.df = as.data.frame(x)
@@ -87,9 +87,8 @@ glmnet.tune.alpha = function(..., alphas, seed, parallel) {
 #' options(datadist = "dd")
 #'
 #' # Generate hdnom.nomogram objects and plot nomogram
-#' nom = hdnom.nomogram(aenetfit$aenet_model, model.type = "aenet",
-#'                      x, time, event, x.df,
-#'                      lambda = aenetfit$aenet_best_lambda, pred.at = 365 * 2,
+#' nom = hdnom.nomogram(fit$aenet_model, model.type = "aenet",
+#'                      x, time, event, x.df, pred.at = 365 * 2,
 #'                      funlabel = "2-Year Overall Survival Probability")
 #'
 #' plot(nom)
@@ -101,52 +100,52 @@ hdcox.aenet = function(x, y, nfolds = 5L, alphas = seq(0.05, 0.95, 0.05),
   rule = match.arg(rule)
 
   # Tuning alpha for the both two stages of adaptive enet estimation
-  enet_y = glmnet.tune.alpha(x, y, family = 'cox',
-                             nfolds = nfolds, alphas = alphas,
-                             seed = seed[1L], parallel = parallel)
+  enet_cv = glmnet.tune.alpha(x, y, family = 'cox',
+                              nfolds = nfolds, alphas = alphas,
+                              seed = seed[1L], parallel = parallel)
 
   # fit the model on all the data use the parameters got by CV
-  best_alpha_enet  = enet_y$best.alpha
+  best_alpha_enet  = enet_cv$best.alpha
 
   if (rule == 'lambda.min') {
-    best_lambda_enet = enet_y$best.model$lambda.min
+    best_lambda_enet = enet_cv$best.model$lambda.min
   } else if (rule == 'lambda.1se') {
-    best_lambda_enet = enet_y$best.model$lambda.1se
+    best_lambda_enet = enet_cv$best.model$lambda.1se
   }
 
-  enet_all = glmnet(x, y, family = 'cox',
-                    lambda = best_lambda_enet,
-                    alpha  = best_alpha_enet)
+  enet_full = glmnet(x, y, family = 'cox',
+                     lambda = best_lambda_enet,
+                     alpha  = best_alpha_enet)
 
-  bhat = as.matrix(enet_all$beta)
+  bhat = as.matrix(enet_full$beta)
   if(all(bhat == 0)) bhat = rep(.Machine$double.eps * 2, length(bhat))
 
   # adaptive penalty
   adpen = (1/pmax(abs(bhat), .Machine$double.eps))
 
-  aenet_y = glmnet.tune.alpha(x, y, family = 'cox', nfolds = nfolds,
-                              exclude = which(bhat == 0),
-                              penalty.factor = adpen,
-                              alphas = alphas,
-                              seed = seed[2L],
-                              parallel = parallel)
+  aenet_cv = glmnet.tune.alpha(x, y, family = 'cox', nfolds = nfolds,
+                               exclude = which(bhat == 0),
+                               penalty.factor = adpen,
+                               alphas = alphas,
+                               seed = seed[2L],
+                               parallel = parallel)
 
   # fit the model on all the data use the parameters got by CV
-  best_alpha_aenet  = aenet_y$best.alpha
+  best_alpha_aenet  = aenet_cv$best.alpha
 
   if (rule == 'lambda.min') {
-    best_lambda_aenet = aenet_y$best.model$lambda.min
+    best_lambda_aenet = aenet_cv$best.model$lambda.min
   } else if (rule == 'lambda.1se') {
-    best_lambda_aenet = aenet_y$best.model$lambda.1se
+    best_lambda_aenet = aenet_cv$best.model$lambda.1se
   }
 
-  aenet_all = glmnet(x, y, family = 'cox',
-                     exclude = which(bhat == 0),
-                     lambda  = best_lambda_aenet,
-                     penalty.factor = adpen,
-                     alpha   = best_alpha_aenet)
+  aenet_full = glmnet(x, y, family = 'cox',
+                      exclude = which(bhat == 0),
+                      lambda  = best_lambda_aenet,
+                      penalty.factor = adpen,
+                      alpha   = best_alpha_aenet)
 
-  if (aenet_all$df < 0.5)
+  if (aenet_full$df < 0.5)
     stop('Null model produced by the full fit (all coefficients are zero).
          Please try to tune rule, alphas, seed, nfolds, or increase sample size.')
 
@@ -157,10 +156,10 @@ hdcox.aenet = function(x, y, nfolds = 5L, alphas = seq(0.05, 0.95, 0.05),
   coxaenet_model = list('seed' = seed,
                         'enet_best_alpha' = best_alpha_enet,
                         'enet_best_lambda' = best_lambda_enet,
-                        'enet_model' = enet_all,
+                        'enet_model' = enet_full,
                         'aenet_best_alpha' = best_alpha_aenet,
                         'aenet_best_lambda' = best_lambda_aenet,
-                        'aenet_model' = aenet_all,
+                        'aenet_model' = aenet_full,
                         'pen_factor' = adpen_vec)
 
   class(coxaenet_model) = c('hdcox.model', 'hdcox.model.aenet')
@@ -196,8 +195,8 @@ hdcox.aenet = function(x, y, nfolds = 5L, alphas = seq(0.05, 0.95, 0.05),
 #' event = smart$EVENT
 #' y = Surv(time, event)
 #'
-#' # Fit Cox model by adaptive lasso penalization
-#' alassofit = hdcox.alasso(x, y, nfolds = 3, rule = "lambda.1se", seed = c(7, 11))
+#' # Fit Cox model with adaptive lasso penalty
+#' fit = hdcox.alasso(x, y, nfolds = 3, rule = "lambda.1se", seed = c(7, 11))
 #'
 #' # Prepare data for hdnom.nomogram
 #' x.df = as.data.frame(x)
@@ -205,9 +204,8 @@ hdcox.aenet = function(x, y, nfolds = 5L, alphas = seq(0.05, 0.95, 0.05),
 #' options(datadist = "dd")
 #'
 #' # Generate hdnom.nomogram objects and plot nomogram
-#' nom = hdnom.nomogram(alassofit$alasso_model, model.type = "alasso",
-#'                      x, time, event, x.df,
-#'                      lambda = alassofit$alasso_best_lambda, pred.at = 365 * 2,
+#' nom = hdnom.nomogram(fit$alasso_model, model.type = "alasso",
+#'                      x, time, event, x.df, pred.at = 365 * 2,
 #'                      funlabel = "2-Year Overall Survival Probability")
 #'
 #' plot(nom)
@@ -217,39 +215,39 @@ hdcox.alasso = function(x, y, nfolds = 5L,
 
   # Tuning lambda for the both two stages of adaptive lasso estimation
   set.seed(seed[1L])
-  lasso_y = cv.glmnet(x, y, family = 'cox', nfolds = nfolds, alpha = 0)
+  lasso_cv = cv.glmnet(x, y, family = 'cox', nfolds = nfolds, alpha = 0)
 
   # fit the model on all the data use the parameters got by CV
   if (rule == 'lambda.min') {
-    best_lambda_lasso = lasso_y$lambda.min
+    best_lambda_lasso = lasso_cv$lambda.min
   } else if (rule == 'lambda.1se') {
-    best_lambda_lasso = lasso_y$lambda.1se
+    best_lambda_lasso = lasso_cv$lambda.1se
   }
 
-  lasso_all = glmnet(x, y, family = 'cox',
-                     lambda = best_lambda_lasso, alpha = 0)
+  lasso_full = glmnet(x, y, family = 'cox',
+                      lambda = best_lambda_lasso, alpha = 0)
 
-  bhat = as.matrix(lasso_all$beta)
+  bhat = as.matrix(lasso_full$beta)
   if(all(bhat == 0)) bhat = rep(.Machine$double.eps * 2, length(bhat))
 
   # adaptive penalty
   adpen = (1/pmax(abs(bhat), .Machine$double.eps))
 
   set.seed(seed[2L])
-  alasso_y = cv.glmnet(x, y, family = 'cox', nfolds = nfolds, alpha = 1,
-                       penalty.factor = adpen)
+  alasso_cv = cv.glmnet(x, y, family = 'cox', nfolds = nfolds, alpha = 1,
+                        penalty.factor = adpen)
 
   # fit the model on all the data use the parameters got by CV
   if (rule == 'lambda.min') {
-    best_lambda_alasso = alasso_y$lambda.min
+    best_lambda_alasso = alasso_cv$lambda.min
   } else if (rule == 'lambda.1se') {
-    best_lambda_alasso = alasso_y$lambda.1se
+    best_lambda_alasso = alasso_cv$lambda.1se
   }
 
-  alasso_all = glmnet(x, y, family = 'cox', lambda = best_lambda_alasso,
-                      alpha = 1, penalty.factor = adpen)
+  alasso_full = glmnet(x, y, family = 'cox', lambda = best_lambda_alasso,
+                       alpha = 1, penalty.factor = adpen)
 
-  if (alasso_all$df < 0.5)
+  if (alasso_full$df < 0.5)
     stop('Null model produced by the full fit (all coefficients are zero).
          Please try to tune rule, seed, nfolds, or increase sample size.')
 
@@ -259,9 +257,9 @@ hdcox.alasso = function(x, y, nfolds = 5L,
 
   coxalasso_model = list('seed' = seed,
                          'ridge_best_lambda' = best_lambda_lasso,
-                         'ridge_model' = lasso_all,
+                         'ridge_model' = lasso_full,
                          'alasso_best_lambda' = best_lambda_alasso,
-                         'alasso_model' = alasso_all,
+                         'alasso_model' = alasso_full,
                          'pen_factor' = adpen_vec)
 
   class(coxalasso_model) = c('hdcox.model', 'hdcox.model.alasso')
@@ -306,9 +304,9 @@ hdcox.alasso = function(x, y, nfolds = 5L,
 #' # registerDoParallel(detectCores())
 #' # then set hdcox.enet(..., parallel = TRUE).
 #'
-#' # Fit Cox model by elastic-net penalization
-#' enetfit = hdcox.enet(x, y, nfolds = 3, alphas = c(0.3, 0.7),
-#'                      rule = "lambda.1se", seed = 11)
+#' # Fit Cox model with elastic-net penalty
+#' fit = hdcox.enet(x, y, nfolds = 3, alphas = c(0.3, 0.7),
+#'                  rule = "lambda.1se", seed = 11)
 #'
 #' # Prepare data for hdnom.nomogram
 #' x.df = as.data.frame(x)
@@ -316,9 +314,8 @@ hdcox.alasso = function(x, y, nfolds = 5L,
 #' options(datadist = "dd")
 #'
 #' # Generate hdnom.nomogram objects and plot nomogram
-#' nom = hdnom.nomogram(enetfit$enet_model, model.type = "enet",
-#'                      x, time, event, x.df,
-#'                      lambda = enetfit$enet_best_lambda, pred.at = 365 * 2,
+#' nom = hdnom.nomogram(fit$enet_model, model.type = "enet",
+#'                      x, time, event, x.df, pred.at = 365 * 2,
 #'                      funlabel = "2-Year Overall Survival Probability")
 #'
 #' plot(nom)
@@ -326,31 +323,31 @@ hdcox.enet = function(x, y, nfolds = 5L, alphas = seq(0.05, 0.95, 0.05),
                       rule = c('lambda.min', 'lambda.1se'),
                       seed = 1001, parallel = FALSE) {
 
-  enet_y = glmnet.tune.alpha(x, y, family = 'cox',
-                             nfolds = nfolds, alphas = alphas,
-                             seed = seed, parallel = parallel)
+  enet_cv = glmnet.tune.alpha(x, y, family = 'cox',
+                              nfolds = nfolds, alphas = alphas,
+                              seed = seed, parallel = parallel)
 
   # fit the model on all the data use the parameters got by CV
-  best_alpha_enet = enet_y$best.alpha
+  best_alpha_enet = enet_cv$best.alpha
 
   if (rule == 'lambda.min') {
-    best_lambda_enet = enet_y$best.model$lambda.min
+    best_lambda_enet = enet_cv$best.model$lambda.min
   } else if (rule == 'lambda.1se') {
-    best_lambda_enet = enet_y$best.model$lambda.1se
+    best_lambda_enet = enet_cv$best.model$lambda.1se
   }
 
-  enet_all = glmnet(x, y, family = 'cox',
-                    lambda = best_lambda_enet,
-                    alpha  = best_alpha_enet)
+  enet_full = glmnet(x, y, family = 'cox',
+                     lambda = best_lambda_enet,
+                     alpha  = best_alpha_enet)
 
-  if (enet_all$df < 0.5)
+  if (enet_full$df < 0.5)
     stop('Null model produced by the full fit (all coefficients are zero).
          Please try to tune rule, alphas, seed, nfolds, or increase sample size.')
 
   coxenet_model = list('seed' = seed,
                        'enet_best_alpha' = best_alpha_enet,
                        'enet_best_lambda' = best_lambda_enet,
-                       'enet_model' = enet_all)
+                       'enet_model' = enet_full)
 
   class(coxenet_model) = c('hdcox.model', 'hdcox.model.enet')
 
@@ -384,8 +381,8 @@ hdcox.enet = function(x, y, nfolds = 5L, alphas = seq(0.05, 0.95, 0.05),
 #' event = smart$EVENT
 #' y = Surv(time, event)
 #'
-#' # Fit Cox model by lasso penalization
-#' lassofit = hdcox.lasso(x, y, nfolds = 5, rule = "lambda.1se", seed = 11)
+#' # Fit Cox model with lasso penalty
+#' fit = hdcox.lasso(x, y, nfolds = 5, rule = "lambda.1se", seed = 11)
 #'
 #' # Prepare data for hdnom.nomogram
 #' x.df = as.data.frame(x)
@@ -393,9 +390,8 @@ hdcox.enet = function(x, y, nfolds = 5L, alphas = seq(0.05, 0.95, 0.05),
 #' options(datadist = "dd")
 #'
 #' # Generate hdnom.nomogram objects and plot nomogram
-#' nom = hdnom.nomogram(lassofit$lasso_model, model.type = "lasso",
-#'                      x, time, event, x.df,
-#'                      lambda = lassofit$lasso_best_lambda, pred.at = 365 * 2,
+#' nom = hdnom.nomogram(fit$lasso_model, model.type = "lasso",
+#'                      x, time, event, x.df, pred.at = 365 * 2,
 #'                      funlabel = "2-Year Overall Survival Probability")
 #'
 #' plot(nom)
@@ -404,25 +400,25 @@ hdcox.lasso = function(x, y, nfolds = 5L,
                        seed = 1001) {
 
   set.seed(seed)
-  lasso_y = cv.glmnet(x, y, family = 'cox', nfolds = nfolds, alpha = 1)
+  lasso_cv = cv.glmnet(x, y, family = 'cox', nfolds = nfolds, alpha = 1)
 
   # fit the model on all the data use the parameters got by CV
   if (rule == 'lambda.min') {
-    best_lambda_lasso = lasso_y$lambda.min
+    best_lambda_lasso = lasso_cv$lambda.min
   } else if (rule == 'lambda.1se') {
-    best_lambda_lasso = lasso_y$lambda.1se
+    best_lambda_lasso = lasso_cv$lambda.1se
   }
 
-  lasso_all = glmnet(x, y, family = 'cox',
-                     lambda = best_lambda_lasso, alpha = 1)
+  lasso_full = glmnet(x, y, family = 'cox',
+                      lambda = best_lambda_lasso, alpha = 1)
 
-  if (lasso_all$df < 0.5)
+  if (lasso_full$df < 0.5)
     stop('Null model produced by the full fit (all coefficients are zero).
          Please try to tune rule, seed, nfolds, or increase sample size.')
 
   coxlasso_model = list('seed' = seed,
                         'lasso_best_lambda' = best_lambda_lasso,
-                        'lasso_model' = lasso_all)
+                        'lasso_model' = lasso_full)
 
   class(coxlasso_model) = c('hdcox.model', 'hdcox.model.lasso')
 
@@ -430,26 +426,108 @@ hdcox.lasso = function(x, y, nfolds = 5L,
 
 }
 
+#' Automatic lambda tuning function for fused lasso by k-fold cross-validation
+#'
+#' @return best model object, best lambda1, and best lambda2
+#'
+#' @importFrom penalized cvl
+#' @importFrom foreach %dopar%
+#' @importFrom foreach foreach
+#'
+#' @keywords internal
+penalized.tune.lambda = function(..., lambda1, lambda2, seed, trace, parallel) {
+
+  nlambda1 = length(lambda1)
+  nlambda2 = length(lambda2)
+
+  if (!parallel) {
+
+    model_list = vector('list', nlambda1)
+    for (k in 1L:nlambda1) model_list[[k]] = vector('list', nlambda2)
+
+    for (i in 1L:nlambda1) {
+      for (j in 1L:nlambda2) {
+        set.seed(seed)
+        if (trace) cat('Starting: lambda1 =', lambda1[i], 'lambda2 =', lambda2[j], '\n')
+        model_list[[i]][[j]] =
+          penalized::cvl(..., lambda1 = lambda1[i], lambda2 = lambda2[j])
+      }
+    }
+
+    # store lambda combinations
+    for (i in 1L:nlambda1) {
+      for (j in 1L:nlambda2) {
+        model_list[[i]][[j]][['lambda']] =
+          c('lambda1' = lambda1[i], 'lambda2' = lambda2[j])
+      }
+    }
+
+    simple_model_list = unlist(model_list, recursive = FALSE)
+
+  } else {
+
+    model_list <- foreach(lambda1 = lambda1) %:%
+      foreach(lambda2 = lambda2) %dopar% {
+        set.seed(seed)
+        penalized::cvl(..., lambda1 = lambda1, lambda2 = lambda2)
+      }
+
+    # store lambda combinations
+    for (i in 1L:nlambda1) {
+      for (j in 1L:nlambda2) {
+        model_list[[i]][[j]][['lambda']] =
+          c('lambda1' = lambda1[i], 'lambda2' = lambda2[j])
+      }
+    }
+
+    simple_model_list = unlist(model_list, recursive = FALSE)
+
+  }
+
+  # choose model for best lambda combination
+  # criterion: cross-validated likelihood
+  max_cvl = which.max(unlist(sapply(simple_model_list, '[', 'cvl')))
+
+  return(list('best.model' = simple_model_list[[max_cvl]],
+              'best.lambda1' = simple_model_list[[max_cvl]][['lambda']]['lambda1'],
+              'best.lambda2' = simple_model_list[[max_cvl]][['lambda']]['lambda2']))
+
+}
+
 #' Fused Lasso Model Selection for High-Dimensional Cox Models
 #'
 #' Automatic fused lasso model selection for high-dimensional
-#' Cox models, evaluated by penalized partial-likelihood.
+#' Cox models, evaluated by cross-validated likelihood.
 #'
 #' @param x Data matrix.
 #' @param y Response matrix made by \code{\link[survival]{Surv}}.
 #' @param nfolds Fold numbers of cross-validation.
+#' @param lambda1 Vector of lambda1 candidates.
+#' Default is \code{0.001, 0.05, 0.5, 1, 5}.
+#' @param lambda2 Vector of lambda2 candidates.
+#' Default is \code{0.001, 0.01, 0.5}.
+#' @param maxiter The maximum number of iterations allowed.
+#' Default is \code{25}.
+#' @param epsilon The convergence criterion.
+#' Default is \code{1e-3}.
 #' @param seed A random seed for cross-validation fold division.
 #' @param trace Output the cross-validation parameter tuning
 #' progress or not. Default is \code{FALSE}.
+#' @param parallel Logical. Enable parallel parameter tuning or not,
+#' default is {FALSE}. To enable parallel tuning, load the
+#' \code{doParallel} package and run \code{registerDoParallel()}
+#' with the number of CPU cores before calling this function.
+#' @param ... other parameters to \code{\link[penalized]{cvl}}
+#' and \code{\link[penalized]{penalized}}.
 #'
 #' @note The cross-validation procedure used in this function is the
-#' so-called approximated cross-validation provided by the \code{penalized}
+#' \emph{approximated cross-validation} provided by the \code{penalized}
 #' package. Be careful dealing with the results since they might be more
-#' optimistic than fully fitting the model. This cross-validation method
-#' is more suitable for datasets with larger number of observations,
+#' optimistic than a traditional CV procedure. This cross-validation
+#' method is more suitable for datasets with larger number of observations,
 #' and a higher number of cross-validation folds.
 #'
-#' @importFrom penalized optL1
+#' @importFrom penalized penalized
 #'
 #' @export hdcox.flasso
 #'
@@ -459,13 +537,16 @@ hdcox.lasso = function(x, y, nfolds = 5L,
 #'
 #' # Load imputed SMART data; only use the first 120 samples
 #' data("smart")
-#' x = as.matrix(smart[, -c(1, 2)])[1:140, ]
-#' time = smart$TEVENT[1:140]
-#' event = smart$EVENT[1:140]
+#' x = as.matrix(smart[, -c(1, 2)])[1:120, ]
+#' time = smart$TEVENT[1:120]
+#' event = smart$EVENT[1:120]
 #' y = Surv(time, event)
 #'
-#' # Fit Cox model by fused lasso penalization
-#' flassofit = hdcox.flasso(x, y, nfolds = 3, seed = 11)
+#' # Fit Cox model with fused lasso penalty
+#' fit = hdcox.flasso(x, y,
+#'                    lambda1 = c(1, 10),
+#'                    lambda2 = c(0.01),
+#'                    nfolds = 3, seed = 11)
 #'
 #' # Prepare data for hdnom.nomogram
 #' x.df = as.data.frame(x)
@@ -473,50 +554,50 @@ hdcox.lasso = function(x, y, nfolds = 5L,
 #' options(datadist = "dd")
 #'
 #' # Generate hdnom.nomogram objects and plot nomogram
-#' nom = hdnom.nomogram(flassofit$flasso_model, model.type = "flasso",
-#'                      x, time, event, x.df,
-#'                      lambda = flassofit$flasso_best_lambda, pred.at = 365 * 2,
+#' nom = hdnom.nomogram(fit$flasso_model, model.type = "flasso",
+#'                      x, time, event, x.df, pred.at = 365 * 2,
 #'                      funlabel = "2-Year Overall Survival Probability")
 #'
 #' plot(nom)
 hdcox.flasso = function(x, y, nfolds = 5L,
-                        seed = 1001, trace = FALSE) {
+                        lambda1 = c(0.001, 0.05, 0.5, 1, 5),
+                        lambda2 = c(0.001, 0.01, 0.5),
+                        maxiter = 25, epsilon = 1e-3,
+                        seed = 1001, trace = FALSE, parallel = FALSE, ...) {
 
-  set.seed(seed)
-  flasso_all = optL1(response = y, penalized = x, fusedl = TRUE,
-                     standardize = TRUE, model = 'cox', fold = nfolds,
-                     trace = trace)
+  if (trace) cat('Starting cross-validation...\n')
+  flasso_cv = penalized.tune.lambda(
+    response = y, penalized = x, fold = nfolds,
+    lambda1 = lambda1, lambda2 = lambda2,
+    maxiter = maxiter, epsilon = epsilon,
+    seed = seed, trace = trace, parallel = parallel,
+    fusedl = TRUE, standardize = TRUE, model = 'cox', ...)
 
-  if (all(abs(flasso_all$fullfit@penalized) < .Machine$double.eps))
+  flasso_best_lambda1  = flasso_cv$'best.lambda1'
+  flasso_best_lambda2  = flasso_cv$'best.lambda2'
+
+  # fit the model on all the data use the parameters got by CV
+  if (trace) cat('Fitting fused lasso model with full data...\n')
+  flasso_full = penalized(
+    response = y, penalized = x,
+    lambda1 = flasso_best_lambda1,
+    lambda2 = flasso_best_lambda2,
+    maxiter = maxiter, epsilon = epsilon,
+    trace = trace,
+    fusedl = TRUE, standardize = FALSE, model = 'cox', ...)
+
+  if (all(abs(flasso_full@penalized) < .Machine$double.eps))
     stop('Null model produced by the full fit (all coefficients are zero).
-         Please try to tune seed, nfolds, or increase sample size.')
+         Please try changing the seed, nfolds, or increase sample size.')
 
   coxflasso_model = list('seed' = seed,
-                         'flasso_best_lambda' = flasso_all$lambda,
-                         'flasso_model' = flasso_all$fullfit)
+                         'flasso_best_lambda1' = flasso_best_lambda1,
+                         'flasso_best_lambda2' = flasso_best_lambda2,
+                         'flasso_model' = flasso_full)
 
   class(coxflasso_model) = c('hdcox.model', 'hdcox.model.flasso')
 
   return(coxflasso_model)
-
-}
-
-# hotfix for ncvreg >= 3.7-0
-# support single lambda value as input
-.ncvsurv_one_lambda = function (..., lambda) {
-
-  # fit with an additional lambda: 0
-  fit = ncvreg::ncvsurv(..., lambda = c(lambda, 0L))
-
-  # remove the last lambda related values
-  len = length(fit$'lambda')
-  fit$'beta'   = fit$'beta'[, -len, drop = FALSE]
-  fit$'iter'   = fit$'iter'[-len]
-  fit$'lambda' = fit$'lambda'[-len]
-  fit$'loss'   = fit$'loss'[-len]
-  fit$'W'      = fit$'W'[, -len, drop = FALSE]
-
-  fit
 
 }
 
@@ -529,26 +610,28 @@ hdcox.flasso = function(x, y, nfolds = 5L,
 #' @importFrom foreach foreach
 #'
 #' @keywords internal
-ncvreg.tune.gamma = function(..., gammas, seed, parallel) {
+ncvreg.tune.gamma = function(..., gammas, eps, max.iter, seed, parallel) {
 
   if (!parallel) {
-    modelList = vector('list', length(gammas))
+    model_list = vector('list', length(gammas))
     for (i in 1L:length(gammas)) {
       set.seed(seed)
-      modelList[[i]] = cv.ncvsurv(..., gamma = gammas[i])
+      model_list[[i]] = cv.ncvsurv(..., gamma = gammas[i],
+                                   eps = eps, max.iter = max.iter)
     }
   } else {
-    modelList <- foreach(gammas = gammas) %dopar% {
+    model_list <- foreach(gammas = gammas) %dopar% {
       set.seed(seed)
-      cv.ncvsurv(..., gamma = gammas)
+      cv.ncvsurv(..., gamma = gammas,
+                 eps = eps, max.iter = max.iter)
     }
   }
 
-  # Choose model for best lambda first (then gamma)
-  # Criterion: penalized partial likelihood
-  errors = unlist(lapply(modelList, function(x) min(sqrt(x$cve))))
+  # select model for best lambda first (then gamma)
+  # criterion: penalized partial likelihood
+  errors = unlist(lapply(model_list, function(x) min(sqrt(x$cve))))
 
-  return(list('best.model' = modelList[[which.min(errors)]],
+  return(list('best.model' = model_list[[which.min(errors)]],
               'best.gamma' = gammas[which.min(errors)]))
 
 }
@@ -562,6 +645,8 @@ ncvreg.tune.gamma = function(..., gammas, seed, parallel) {
 #' @param y Response matrix made by \code{\link[survival]{Surv}}.
 #' @param nfolds Fold numbers of cross-validation.
 #' @param gammas Gammas to tune in \code{\link[ncvreg]{cv.ncvsurv}}.
+#' @param eps Convergence threshhold.
+#' @param max.iter Maximum number of iterations.
 #' @param seed A random seed for cross-validation fold division.
 #' @param trace Output the cross-validation parameter tuning
 #' progress or not. Default is \code{FALSE}.
@@ -585,8 +670,8 @@ ncvreg.tune.gamma = function(..., gammas, seed, parallel) {
 #' event = smart$EVENT[1:150]
 #' y = Surv(time, event)
 #'
-#' # Fit Cox model by MCP penalization
-#' mcpfit = hdcox.mcp(x, y, nfolds = 3, gammas = c(2.1, 3), seed = 1001)
+#' # Fit Cox model with MCP penalty
+#' fit = hdcox.mcp(x, y, nfolds = 3, gammas = c(2.1, 3), seed = 1001)
 #'
 #' # Prepare data for hdnom.nomogram
 #' x.df = as.data.frame(x)
@@ -594,36 +679,37 @@ ncvreg.tune.gamma = function(..., gammas, seed, parallel) {
 #' options(datadist = "dd")
 #'
 #' # Generate hdnom.nomogram objects and plot nomogram
-#' nom = hdnom.nomogram(mcpfit$mcp_model, model.type = "mcp", x, time, event, x.df,
-#'                      lambda = mcpfit$mcp_best_lambda, pred.at = 365 * 2,
+#' nom = hdnom.nomogram(fit$mcp_model, model.type = "mcp",
+#'                      x, time, event, x.df, pred.at = 365 * 2,
 #'                      funlabel = "2-Year Overall Survival Probability")
 #' plot(nom)
 hdcox.mcp = function(x, y, nfolds = 5L, gammas = c(1.01, 1.7, 3, 100),
+                     eps = 1e-4, max.iter = 10000L,
                      seed = 1001, trace = FALSE, parallel = FALSE) {
 
-  mcp_y = ncvreg.tune.gamma(x, y, penalty = 'MCP', alpha = 1,
-                            nfolds = nfolds, gammas = gammas, seed = seed,
-                            trace = trace, parallel = parallel,
-                            max.iter = 5e+4)  # hotfix for example convergence under ncvreg >= 3.7-0
+  mcp_cv = ncvreg.tune.gamma(x, y, penalty = 'MCP', alpha = 1,
+                             nfolds = nfolds, gammas = gammas,
+                             eps = eps, max.iter = max.iter,
+                             seed = seed, trace = trace, parallel = parallel)
 
-  mcp_best_gamma  = mcp_y$best.gamma
-  mcp_best_lambda = mcp_y$best.model$lambda.min
+  mcp_best_gamma  = mcp_cv$best.gamma
+  mcp_best_lambda = mcp_cv$best.model$lambda.min
 
   # fit the model on all the data use the parameters got by CV
-  mcp_all =
-    .ncvsurv_one_lambda(x, y, penalty = 'MCP', alpha = 1,
-                        gamma = mcp_best_gamma, lambda = mcp_best_lambda,
-                        max.iter = 5e+4)  # hotfix
+  mcp_full =
+    ncvreg::ncvsurv(x, y, penalty = 'MCP', alpha = 1,
+                    gamma = mcp_best_gamma, lambda = mcp_best_lambda,
+                    eps = eps, max.iter = max.iter)
 
   # deal with null models, thanks for the suggestion from Patrick Breheny
-  if (all(abs(mcp_all$beta[-1L, ]) < .Machine$double.eps))
+  if (all(abs(mcp_full$beta[-1L, ]) < .Machine$double.eps))
     stop('Null model produced by the full fit (all coefficients are zero).
          Please try to tune gammas, seed, nfolds, or increase sample size.')
 
   coxmcp_model = list('seed' = seed,
                       'mcp_best_gamma' = mcp_best_gamma,
                       'mcp_best_lambda' = mcp_best_lambda,
-                      'mcp_model' = mcp_all)
+                      'mcp_model' = mcp_full)
 
   class(coxmcp_model) = c('hdcox.model', 'hdcox.model.mcp')
 
@@ -641,45 +727,48 @@ hdcox.mcp = function(x, y, nfolds = 5L, gammas = c(1.01, 1.7, 3, 100),
 #' @importFrom foreach foreach
 #'
 #' @keywords internal
-ncvreg.tune.gamma.alpha = function(..., gammas, alphas, seed, parallel) {
+ncvreg.tune.gamma.alpha = function(..., gammas, alphas, eps, max.iter,
+                                   seed, parallel) {
 
   if (!parallel) {
 
-    modelList = vector('list', length(gammas))
-    for (k in 1L:length(modelList)) {
-      modelList[[k]] = vector('list', length(alphas))
+    model_list = vector('list', length(gammas))
+    for (k in 1L:length(model_list)) {
+      model_list[[k]] = vector('list', length(alphas))
     }
 
     for (i in 1L:length(gammas)) {
       for (j in 1L:length(alphas)) {
         set.seed(seed)
-        modelList[[i]][[j]] =
-          cv.ncvsurv(..., gamma = gammas[i], alpha = alphas[j])
+        model_list[[i]][[j]] =
+          cv.ncvsurv(..., gamma = gammas[i], alpha = alphas[j],
+                     eps = eps, max.iter = max.iter)
       }
     }
 
-    simplemodelList = unlist(modelList, recursive = FALSE)
+    simple_model_list = unlist(model_list, recursive = FALSE)
 
   } else {
 
-    modelList <- foreach(gammas = gammas) %:%
+    model_list <- foreach(gammas = gammas) %:%
       foreach(alphas = alphas) %dopar% {
         set.seed(seed)
-        cv.ncvsurv(..., gamma = gammas, alpha = alphas)
+        cv.ncvsurv(..., gamma = gammas, alpha = alphas,
+                   eps = eps, max.iter = max.iter)
       }
 
-    simplemodelList = unlist(modelList, recursive = FALSE)
+    simple_model_list = unlist(model_list, recursive = FALSE)
 
   }
 
-  # Choose model for best lambda first (then gamma/alpha)
-  # Criterion: penalized partial likelihood
-  errors = unlist(lapply(simplemodelList,
+  # select model for best lambda first (then gamma/alpha)
+  # criterion: penalized partial likelihood
+  errors = unlist(lapply(simple_model_list,
                          function(x) min(sqrt(x$cve))))
 
-  return(list('best.model' = simplemodelList[[which.min(errors)]],
-              'best.gamma' = simplemodelList[[which.min(errors)]]$fit$gamma,
-              'best.alpha' = simplemodelList[[which.min(errors)]]$fit$alpha))
+  return(list('best.model' = simple_model_list[[which.min(errors)]],
+              'best.gamma' = simple_model_list[[which.min(errors)]]$fit$gamma,
+              'best.alpha' = simple_model_list[[which.min(errors)]]$fit$alpha))
 
 }
 
@@ -693,6 +782,8 @@ ncvreg.tune.gamma.alpha = function(..., gammas, alphas, seed, parallel) {
 #' @param nfolds Fold numbers of cross-validation.
 #' @param gammas Gammas to tune in \code{\link[ncvreg]{cv.ncvsurv}}.
 #' @param alphas Alphas to tune in \code{\link[ncvreg]{cv.ncvsurv}}.
+#' @param eps Convergence threshhold.
+#' @param max.iter Maximum number of iterations.
 #' @param seed A random seed for cross-validation fold division.
 #' @param trace Output the cross-validation parameter tuning
 #' progress or not. Default is \code{FALSE}.
@@ -716,9 +807,10 @@ ncvreg.tune.gamma.alpha = function(..., gammas, alphas, seed, parallel) {
 #' event = smart$EVENT[1:120]
 #' y = Surv(time, event)
 #'
-#' # Fit Cox model by Mnet penalization
-#' mnetfit = hdcox.mnet(x, y, nfolds = 3, gammas = 3,
-#'                      alphas = c(0.3, 0.8), seed = 1010)
+#' # Fit Cox model with Mnet penalty
+#' fit = hdcox.mnet(x, y, nfolds = 3,
+#'                  gammas = 3, alphas = c(0.3, 0.8),
+#'                  max.iter = 15000, seed = 1010)
 #'
 #' # Prepare data for hdnom.nomogram
 #' x.df = as.data.frame(x)
@@ -726,37 +818,37 @@ ncvreg.tune.gamma.alpha = function(..., gammas, alphas, seed, parallel) {
 #' options(datadist = "dd")
 #'
 #' # Generate hdnom.nomogram objects and plot nomogram
-#' nom = hdnom.nomogram(mnetfit$mnet_model, model.type = "mnet",
-#'                      x, time, event, x.df,
-#'                      lambda = mnetfit$mnet_best_lambda,
-#'                      pred.at = 365 * 2,
+#' nom = hdnom.nomogram(fit$mnet_model, model.type = "mnet",
+#'                      x, time, event, x.df, pred.at = 365 * 2,
 #'                      funlabel = "2-Year Overall Survival Probability")
 #'
 #' plot(nom)
-hdcox.mnet = function(x, y, nfolds = 5L, gammas = c(1.01, 1.7, 3, 100),
+hdcox.mnet = function(x, y, nfolds = 5L,
+                      gammas = c(1.01, 1.7, 3, 100),
                       alphas = seq(0.05, 0.95, 0.05),
+                      eps = 1e-4, max.iter = 10000L,
                       seed = 1001, trace = FALSE, parallel = FALSE) {
 
-  mnet_y = ncvreg.tune.gamma.alpha(x, y, penalty = 'MCP',
-                                   nfolds = nfolds,
-                                   gammas = gammas, alphas = alphas,
-                                   seed = seed, trace = trace,
-                                   parallel = parallel,
-                                   max.iter = 5e+4)  # hotfix
+  mnet_cv = ncvreg.tune.gamma.alpha(x, y, penalty = 'MCP',
+                                    nfolds = nfolds,
+                                    gammas = gammas, alphas = alphas,
+                                    eps = eps, max.iter = max.iter,
+                                    seed = seed, trace = trace,
+                                    parallel = parallel)
 
-  mnet_best_gamma  = mnet_y$best.gamma
-  mnet_best_alpha  = mnet_y$best.alpha
-  mnet_best_lambda = mnet_y$best.model$lambda.min
+  mnet_best_gamma  = mnet_cv$best.gamma
+  mnet_best_alpha  = mnet_cv$best.alpha
+  mnet_best_lambda = mnet_cv$best.model$lambda.min
 
   # fit the model on all the data use the parameters got by CV
-  mnet_all =
-    .ncvsurv_one_lambda(x, y, penalty = 'MCP',
-                        gamma = mnet_best_gamma,
-                        alpha = mnet_best_alpha,
-                        lambda = mnet_best_lambda,
-                        max.iter = 5e+4)  # hotfix
+  mnet_full =
+    ncvreg::ncvsurv(x, y, penalty = 'MCP',
+                    gamma = mnet_best_gamma,
+                    alpha = mnet_best_alpha,
+                    lambda = mnet_best_lambda,
+                    eps = eps, max.iter = max.iter)
 
-  if (all(abs(mnet_all$beta[-1L, ]) < .Machine$double.eps))
+  if (all(abs(mnet_full$beta[-1L, ]) < .Machine$double.eps))
     stop('Null model produced by the full fit (all coefficients are zero).
          Please try to tune gammas, alphas, seed, nfolds, or increase sample size.')
 
@@ -764,7 +856,7 @@ hdcox.mnet = function(x, y, nfolds = 5L, gammas = c(1.01, 1.7, 3, 100),
                        'mnet_best_gamma'  = mnet_best_gamma,
                        'mnet_best_alpha'  = mnet_best_alpha,
                        'mnet_best_lambda' = mnet_best_lambda,
-                       'mnet_model'       = mnet_all)
+                       'mnet_model'       = mnet_full)
 
   class(coxmnet_model) = c('hdcox.model', 'hdcox.model.mnet')
 
@@ -781,6 +873,8 @@ hdcox.mnet = function(x, y, nfolds = 5L, gammas = c(1.01, 1.7, 3, 100),
 #' @param y Response matrix made by \code{\link[survival]{Surv}}.
 #' @param nfolds Fold numbers of cross-validation.
 #' @param gammas Gammas to tune in \code{\link[ncvreg]{cv.ncvsurv}}.
+#' @param eps Convergence threshhold.
+#' @param max.iter Maximum number of iterations.
 #' @param seed A random seed for cross-validation fold division.
 #' @param trace Output the cross-validation parameter tuning
 #' progress or not. Default is \code{FALSE}.
@@ -804,8 +898,9 @@ hdcox.mnet = function(x, y, nfolds = 5L, gammas = c(1.01, 1.7, 3, 100),
 #' event = smart$EVENT[1:120]
 #' y = Surv(time, event)
 #'
-#' # Fit Cox model by SCAD penalization
-#' scadfit = hdcox.scad(x, y, nfolds = 3, gammas = c(3.7, 5), seed = 1010)
+#' # Fit Cox model with SCAD penalty
+#' fit = hdcox.scad(x, y, nfolds = 3, gammas = c(3.7, 5),
+#'                  max.iter = 15000, seed = 1010)
 #'
 #' # Prepare data for hdnom.nomogram
 #' x.df = as.data.frame(x)
@@ -813,36 +908,38 @@ hdcox.mnet = function(x, y, nfolds = 5L, gammas = c(1.01, 1.7, 3, 100),
 #' options(datadist = "dd")
 #'
 #' # Generate hdnom.nomogram objects and plot nomogram
-#' nom = hdnom.nomogram(scadfit$scad_model, model.type = "scad", x, time, event, x.df,
-#'                      lambda = scadfit$scad_best_lambda, pred.at = 365 * 2,
+#' nom = hdnom.nomogram(fit$scad_model, model.type = "scad",
+#'                      x, time, event, x.df, pred.at = 365 * 2,
 #'                      funlabel = "2-Year Overall Survival Probability")
 #'
 #' plot(nom)
-hdcox.scad = function(x, y, nfolds = 5L, gammas = c(2.01, 2.3, 3.7, 200),
+hdcox.scad = function(x, y, nfolds = 5L,
+                      gammas = c(2.01, 2.3, 3.7, 200),
+                      eps = 1e-4, max.iter = 10000L,
                       seed = 1001, trace = FALSE, parallel = FALSE) {
 
-  scad_y = ncvreg.tune.gamma(x, y, penalty = 'SCAD', alpha = 1,
-                             nfolds = nfolds, gammas = gammas, seed = seed,
-                             trace = trace, parallel = parallel,
-                             max.iter = 5e+4)  # hotfix
+  scad_cv = ncvreg.tune.gamma(x, y, penalty = 'SCAD', alpha = 1,
+                              nfolds = nfolds, gammas = gammas,
+                              eps = eps, max.iter = max.iter,
+                              seed = seed, trace = trace, parallel = parallel)
 
-  scad_best_gamma  = scad_y$best.gamma
-  scad_best_lambda = scad_y$best.model$lambda.min
+  scad_best_gamma  = scad_cv$best.gamma
+  scad_best_lambda = scad_cv$best.model$lambda.min
 
   # fit the model on all the data use the parameters got by CV
-  scad_all =
-    .ncvsurv_one_lambda(x, y, penalty = 'SCAD', alpha = 1,
-                        gamma = scad_best_gamma, lambda = scad_best_lambda,
-                        max.iter = 5e+4)  # hotfix
+  scad_full =
+    ncvreg::ncvsurv(x, y, penalty = 'SCAD', alpha = 1,
+                    gamma = scad_best_gamma, lambda = scad_best_lambda,
+                    eps = eps, max.iter = max.iter)
 
-  if (all(abs(scad_all$beta[-1L, ]) < .Machine$double.eps))
+  if (all(abs(scad_full$beta[-1L, ]) < .Machine$double.eps))
     stop('Null model produced by the full fit (all coefficients are zero).
          Please try to tune gammas, seed, nfolds, or increase sample size.')
 
   coxscad_model = list('seed' = seed,
                        'scad_best_gamma' = scad_best_gamma,
                        'scad_best_lambda' = scad_best_lambda,
-                       'scad_model' = scad_all)
+                       'scad_model' = scad_full)
 
   class(coxscad_model) = c('hdcox.model', 'hdcox.model.scad')
 
@@ -860,6 +957,8 @@ hdcox.scad = function(x, y, nfolds = 5L, gammas = c(2.01, 2.3, 3.7, 200),
 #' @param nfolds Fold numbers of cross-validation.
 #' @param gammas Gammas to tune in \code{\link[ncvreg]{cv.ncvsurv}}.
 #' @param alphas Alphas to tune in \code{\link[ncvreg]{cv.ncvsurv}}.
+#' @param eps Convergence threshhold.
+#' @param max.iter Maximum number of iterations.
 #' @param seed A random seed for cross-validation fold division.
 #' @param trace Output the cross-validation parameter tuning
 #' progress or not. Default is \code{FALSE}.
@@ -883,9 +982,10 @@ hdcox.scad = function(x, y, nfolds = 5L, gammas = c(2.01, 2.3, 3.7, 200),
 #' event = smart$EVENT[1:120]
 #' y = Surv(time, event)
 #'
-#' # Fit Cox model by Snet penalization
-#' snetfit = hdcox.snet(x, y, nfolds = 3, gammas = 3.7,
-#'                      alphas = c(0.3, 0.8), seed = 1010)
+#' # Fit Cox model with Snet penalty
+#' fit = hdcox.snet(x, y, nfolds = 3,
+#'                  gammas = 3.7, alphas = c(0.3, 0.8),
+#'                  max.iter = 15000, seed = 1010)
 #'
 #' # Prepare data for hdnom.nomogram
 #' x.df = as.data.frame(x)
@@ -893,37 +993,37 @@ hdcox.scad = function(x, y, nfolds = 5L, gammas = c(2.01, 2.3, 3.7, 200),
 #' options(datadist = "dd")
 #'
 #' # Generate hdnom.nomogram objects and plot nomogram
-#' nom = hdnom.nomogram(snetfit$snet_model, model.type = "snet",
-#'                      x, time, event, x.df,
-#'                      lambda = snetfit$snet_best_lambda,
-#'                      pred.at = 365 * 2,
+#' nom = hdnom.nomogram(fit$snet_model, model.type = "snet",
+#'                      x, time, event, x.df, pred.at = 365 * 2,
 #'                      funlabel = "2-Year Overall Survival Probability")
 #'
 #' plot(nom)
-hdcox.snet = function(x, y, nfolds = 5L, gammas = c(2.01, 2.3, 3.7, 200),
+hdcox.snet = function(x, y, nfolds = 5L,
+                      gammas = c(2.01, 2.3, 3.7, 200),
                       alphas = seq(0.05, 0.95, 0.05),
+                      eps = 1e-4, max.iter = 10000L,
                       seed = 1001, trace = FALSE, parallel = FALSE) {
 
-  snet_y = ncvreg.tune.gamma.alpha(x, y, penalty = 'SCAD',
-                                   nfolds = nfolds,
-                                   gammas = gammas, alphas = alphas,
-                                   seed = seed, trace = trace,
-                                   parallel = parallel,
-                                   max.iter = 5e+4)  # hotfix
+  snet_cv = ncvreg.tune.gamma.alpha(x, y, penalty = 'SCAD',
+                                    nfolds = nfolds,
+                                    gammas = gammas, alphas = alphas,
+                                    eps = eps, max.iter = max.iter,
+                                    seed = seed, trace = trace,
+                                    parallel = parallel)
 
-  snet_best_gamma  = snet_y$best.gamma
-  snet_best_alpha  = snet_y$best.alpha
-  snet_best_lambda = snet_y$best.model$lambda.min
+  snet_best_gamma  = snet_cv$best.gamma
+  snet_best_alpha  = snet_cv$best.alpha
+  snet_best_lambda = snet_cv$best.model$lambda.min
 
   # fit the model on all the data use the parameters got by CV
-  snet_all =
-    .ncvsurv_one_lambda(x, y, penalty = 'SCAD',
-                        gamma = snet_best_gamma,
-                        alpha = snet_best_alpha,
-                        lambda = snet_best_lambda,
-                        max.iter = 5e+4)  # hotfix
+  snet_full =
+    ncvreg::ncvsurv(x, y, penalty = 'SCAD',
+                    gamma = snet_best_gamma,
+                    alpha = snet_best_alpha,
+                    lambda = snet_best_lambda,
+                    eps = eps, max.iter = max.iter)
 
-  if (all(abs(snet_all$beta[-1L, ]) < .Machine$double.eps))
+  if (all(abs(snet_full$beta[-1L, ]) < .Machine$double.eps))
     stop('Null model produced by the full fit (all coefficients are zero).
          Please try to tune gammas, alphas, seed, nfolds, or increase sample size.')
 
@@ -931,7 +1031,7 @@ hdcox.snet = function(x, y, nfolds = 5L, gammas = c(2.01, 2.3, 3.7, 200),
                        'snet_best_gamma'  = snet_best_gamma,
                        'snet_best_alpha'  = snet_best_alpha,
                        'snet_best_lambda' = snet_best_lambda,
-                       'snet_model'       = snet_all)
+                       'snet_model'       = snet_full)
 
   class(coxsnet_model) = c('hdcox.model', 'hdcox.model.snet')
 
@@ -954,8 +1054,8 @@ hdcox.snet = function(x, y, nfolds = 5L, gammas = c(2.01, 2.3, 3.7, 200),
 #' @param pred.at Time point at which prediction should take place.
 #' @param ... Other parameters (not used).
 #'
-#' @return A \code{nrow(newx) x length(pred.at)} matrix containing overall
-#' survival probablity.
+#' @return A \code{nrow(newx) x length(pred.at)} matrix containing
+#' overall survival probablity.
 #'
 #' @method predict hdcox.model
 #'
@@ -974,8 +1074,8 @@ hdcox.snet = function(x, y, nfolds = 5L, gammas = c(2.01, 2.3, 3.7, 200),
 #' event = smart$EVENT
 #' y = Surv(time, event)
 #'
-#' lassofit = hdcox.lasso(x, y, nfolds = 5, rule = "lambda.1se", seed = 11)
-#' predict(lassofit, x, y, newx = x[101:105, ], pred.at = 1:10 * 365)
+#' fit = hdcox.lasso(x, y, nfolds = 5, rule = "lambda.1se", seed = 11)
+#' predict(fit, x, y, newx = x[101:105, ], pred.at = 1:10 * 365)
 predict.hdcox.model = function(object, x, y, newx, pred.at, ...) {
 
   if (!('hdcox.model' %in% class(object)))
@@ -985,7 +1085,7 @@ predict.hdcox.model = function(object, x, y, newx, pred.at, ...) {
 
   if (!('matrix' %in% class(newx))) stop('newx must be a matrix')
 
-  time = y[, 1L]
+  time  = y[, 1L]
   event = y[, 2L]
 
   obj.type = switch(model.type,
@@ -1050,9 +1150,9 @@ predict.hdcox.model = function(object, x, y, newx, pred.at, ...) {
 #' event = smart$EVENT
 #' y = Surv(time, event)
 #'
-#' # Fit Cox model by lasso penalization
-#' lassofit = hdcox.lasso(x, y, nfolds = 5, rule = "lambda.1se", seed = 11)
-#' hdnom.varinfo(lassofit, x)
+#' # Fit Cox model with lasso penalty
+#' fit = hdcox.lasso(x, y, nfolds = 5, rule = "lambda.1se", seed = 11)
+#' hdnom.varinfo(fit, x)
 hdnom.varinfo = function(object, x) {
 
   if (!('hdcox.model' %in% class(object)))
@@ -1134,8 +1234,8 @@ hdnom.varinfo = function(object, x) {
 #' event = smart$EVENT
 #' y = Surv(time, event)
 #'
-#' lassofit = hdcox.lasso(x, y, nfolds = 5, rule = "lambda.1se", seed = 11)
-#' print(lassofit)
+#' fit = hdcox.lasso(x, y, nfolds = 5, rule = "lambda.1se", seed = 11)
+#' print(fit)
 print.hdcox.model = function(x, ...) {
 
   if (!('hdcox.model' %in% class(x)))
@@ -1208,7 +1308,8 @@ print.hdcox.model = function(x, ...) {
            cat('High-Dimensional Cox Model Object\n')
            cat('Random seed:', x$'seed', '\n')
            cat('Model type: fused lasso\n')
-           cat('Best lambda:', x$'flasso_best_lambda', '\n')
+           cat('Best lambda1:', x$'flasso_best_lambda1', '\n')
+           cat('Best lambda2:', x$'flasso_best_lambda2', '\n')
          }
   )
 

@@ -5,7 +5,7 @@
 [![CRAN Version](http://www.r-pkg.org/badges/version/hdnom)](https://cran.r-project.org/package=hdnom)
 [![Downloads from the RStudio CRAN mirror](http://cranlogs.r-pkg.org/badges/hdnom)](http://cranlogs.r-pkg.org/badges/hdnom)
 
-`hdnom` builds nomograms for high-dimensional data with penalized Cox models.
+`hdnom` creates nomogram visualizations for penalized Cox regression models, with the support of reproducible survival model building, validation, calibration, and comparison for high-dimensional data.
 
 ## Paper Citation
 
@@ -43,18 +43,29 @@ Or try the development version on GitHub:
 devtools::install_github("road2stat/hdnom")
 ```
 
-To load the package in R, simply use
+Browse [the vignettes](http://hdnom.org/articles/) to start.
 
-```r
-library("hdnom")
-```
+## Gallery
 
-and you are all set. See [the vignette](http://hdnom.org/doc/) (can also be opened with `vignette("hdnom")` in R) for a quick-start guide.
+### Nomogram Visualization / Kaplan-Meier Plot with Number at Risk Table
+
+<img src="http://hdnom.org/img/hdnom-nomogram.png" width="49%" alt="nomogram">
+<img src="http://hdnom.org/img/hdnom-kmplot.png" width="49%" alt="kmplot">
+
+### Model Validation / Model Calibration
+
+<img src="http://hdnom.org/img/hdnom-validate.png" width="47%" alt="validation">
+<img src="http://hdnom.org/img/hdnom-calibrate.png" width="47%" alt="calibration">
+
+### Model Comparison via Validation / Calibration
+
+<img src="http://hdnom.org/img/hdnom-compare-validate.png" width="49%" alt="compare-validation">
+<img src="http://hdnom.org/img/hdnom-compare-calibrate.png" width="49%" alt="compare-calibration">
 
 ## Links
 
 * hdnom project: [http://hdnom.org](http://hdnom.org)
-* hdnom web app: [http://hdnom.io](http://hdnom.io)
+* hdnom web application: [http://hdnom.io](http://hdnom.io)
 * hdnom appmaker: [http://hdnom.org/appmaker](http://hdnom.org/appmaker)
-* hdnom on CRAN: [https://cran.r-project.org/package=hdnom](https://cran.r-project.org/package=hdnom)
-* hdnom on GitHub: [https://github.com/road2stat/hdnom](https://github.com/road2stat/hdnom)
+* CRAN: [https://cran.r-project.org/package=hdnom](https://cran.r-project.org/package=hdnom)
+* GitHub: [https://github.com/road2stat/hdnom](https://github.com/road2stat/hdnom)

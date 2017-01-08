@@ -11,22 +11,22 @@ library("survival")
 y = Surv(time, event)
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  # Enable parallel parameter tuning
+#  # enable parallel parameter tuning
 #  suppressMessages(library("doParallel"))
 #  registerDoParallel(detectCores())
 #  
-#  aenetfit = hdcox.aenet(x, y, nfolds = 10, rule = "lambda.1se",
-#                         seed = c(5, 7), parallel = TRUE)
-#  names(aenetfit)
+#  fit = hdcox.aenet(x, y, nfolds = 10, rule = "lambda.1se",
+#                    seed = c(5, 7), parallel = TRUE)
+#  names(fit)
 
 ## ---- echo = FALSE-------------------------------------------------------
-aenetfit = readRDS("aenetfit.rds")
+fit = readRDS("fit.rds")
 
 ## ------------------------------------------------------------------------
-fit    = aenetfit$aenet_model
-alpha  = aenetfit$aenet_best_alpha
-lambda = aenetfit$aenet_best_lambda
-adapen = aenetfit$pen_factor
+model  = fit$aenet_model
+alpha  = fit$aenet_best_alpha
+lambda = fit$aenet_best_lambda
+adapen = fit$pen_factor
 
 ## ---- fig.width = 8, fig.height = 8, out.width = 600, out.height = 600----
 suppressMessages(library("rms"))
@@ -34,8 +34,8 @@ x.df = as.data.frame(x)
 dd = datadist(x.df)
 options(datadist = "dd")
 
-nom = hdnom.nomogram(fit, model.type = "aenet", x, time, event, x.df,
-                     lambda = lambda, pred.at = 365 * 2,
+nom = hdnom.nomogram(model, model.type = "aenet",
+                     x, time, event, x.df, pred.at = 365 * 2,
                      funlabel = "2-Year Overall Survival Probability")
 plot(nom)
 
@@ -58,7 +58,7 @@ event_new = smart$EVENT[1001:2000]
 
 # External validation with time-dependent AUC
 val.ext =
-  hdnom.external.validate(aenetfit, x, time, event,
+  hdnom.external.validate(fit, x, time, event,
                           x_new, time_new, event_new,
                           tauc.type = "UNO",
                           tauc.time = seq(0.25, 2, 0.25) * 365)
@@ -81,7 +81,7 @@ plot(cal.int, xlim = c(0.5, 1), ylim = c(0.5, 1))
 
 ## ---- fig.width = 8, fig.height = 8, out.width = 600, out.height = 600----
 cal.ext =
-  hdnom.external.calibrate(aenetfit, x, time, event,
+  hdnom.external.calibrate(fit, x, time, event,
                            x_new, time_new, event_new,
                            pred.at = 365 * 5, ngroup = 3)
 
@@ -130,5 +130,5 @@ summary(cmp.cal)
 plot(cmp.cal, xlim = c(0.3, 1), ylim = c(0.3, 1))
 
 ## ------------------------------------------------------------------------
-predict(aenetfit, x, y, newx = x[101:105, ], pred.at = 1:10 * 365)
+predict(fit, x, y, newx = x[101:105, ], pred.at = 1:10 * 365)
 
