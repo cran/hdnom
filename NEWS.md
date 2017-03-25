@@ -1,3 +1,18 @@
+# hdnom 4.8 (2017-03-24)
+
+## Improvements
+
+- Reduced example running time to less than 10s for `hdnom.calibrate()`.
+
+# hdnom 4.7 (2017-03-24)
+
+## Improvements
+
+- Better code indentation style.
+- Reduced example running time for fused lasso.
+- Updated gallery images in `README.md`.
+- HTTPS enabled for the website.
+
 # hdnom 4.6 (2017-01-07)
 
 ## Bug Fixes
