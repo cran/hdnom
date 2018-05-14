@@ -88,11 +88,11 @@ hdnom.nomogram = function(
     selected_vars =
       all_vars[which(as.vector(
         abs(coef(object, s = object$'lambda')) > .Machine$double.eps))]
-    ols_formula = paste('glmnet_pred_lp ~',
-                        paste(paste('`', selected_vars, '`', sep = ''),
-                              collapse = ' + '))
-    ols_fit = ols(as.formula(ols_formula), data = ddist,
-                  sigma = 1, x = TRUE, y = TRUE)
+    ols_formula = paste(
+      'glmnet_pred_lp ~',
+      paste(paste('`', selected_vars, '`', sep = ''), collapse = ' + '))
+    ols_fit = ols(
+      as.formula(ols_formula), data = ddist, sigma = 1, x = TRUE, y = TRUE)
 
     idx_ones = which(event == 1L)
     survtime_ones = time[idx_ones]
@@ -117,11 +117,11 @@ hdnom.nomogram = function(
     all_vars = rownames(object$'beta')
     selected_vars =
       all_vars[which(as.vector(abs(coef(object)) > .Machine$double.eps))]
-    ols_formula = paste('ncvreg_pred_lp ~',
-                        paste(paste('`', selected_vars, '`', sep = ''),
-                              collapse = ' + '))
-    ols_fit = ols(as.formula(ols_formula), data = ddist,
-                  sigma = 1, x = TRUE, y = TRUE)
+    ols_formula = paste(
+      'ncvreg_pred_lp ~',
+      paste(paste('`', selected_vars, '`', sep = ''), collapse = ' + '))
+    ols_fit = ols(
+      as.formula(ols_formula), data = ddist, sigma = 1, x = TRUE, y = TRUE)
 
     idx_ones = which(event == 1L)
     survtime_ones = time[idx_ones]
@@ -146,11 +146,11 @@ hdnom.nomogram = function(
     all_vars = colnames(x)
     selected_vars =
       all_vars[which(abs(object@penalized) > .Machine$double.eps)]
-    ols_formula = paste('penalized_pred_lp ~',
-                        paste(paste('`', selected_vars, '`', sep = ''),
-                              collapse = ' + '))
-    ols_fit = ols(as.formula(ols_formula), data = ddist,
-                  sigma = 1, x = TRUE, y = TRUE)
+    ols_formula = paste(
+      'penalized_pred_lp ~',
+      paste(paste('`', selected_vars, '`', sep = ''), collapse = ' + '))
+    ols_fit = ols(
+      as.formula(ols_formula), data = ddist, sigma = 1, x = TRUE, y = TRUE)
 
     idx_ones = which(event == 1L)
     survtime_ones = time[idx_ones]
@@ -194,14 +194,24 @@ hdnom.nomogram = function(
 #'
 #' Derived from c060::predictProb.coxnet
 #'
+#' @param object \code{glmnet} model object
+#' @param time Survival time
+#' @param event Status indicator
+#' @param x Predictor matrix
+#' @param survtime Survival time to evaluate
+#'
 #' @return list containing predicted survival probabilities and
 #' linear predictors for all samples
 #'
-#' @keywords internal
+#' @export glmnet.survcurve
+#'
+#' @examples
+#' NULL
 glmnet.survcurve = function(object, time, event, x, survtime) {
 
-  lp = as.numeric(predict(object, newx = data.matrix(x),
-                          s = object$'lambda', type = 'link'))
+  lp = as.numeric(predict(
+    object, newx = data.matrix(x),
+    s = object$'lambda', type = 'link'))
   basesurv = glmnet.basesurv(time, event, lp, sort(survtime))
   p = exp(exp(lp) %*% (-t(basesurv$cumulative_base_hazard)))
   colnames(p) = names(sort(survtime))
@@ -217,11 +227,21 @@ glmnet.survcurve = function(object, time, event, x, survtime) {
 #'
 #' Derived from \code{peperr:::basesurv} and \code{gbm::basehaz.gbm}.
 #'
+#' @param time Survival time
+#' @param event Status indicator
+#' @param lp Linear predictors
+#' @param times.eval Survival time to evaluate
+#' @param centered Should we center the survival curve?
+#' See \code{\link[survival]{basehaz}} for details.
+#'
 #' @importFrom stats approx
+#'
+#' @export glmnet.basesurv
 #'
 #' @return list containing cumulative base hazard
 #'
-#' @keywords internal
+#' @examples
+#' NULL
 glmnet.basesurv = function(
   time, event, lp,
   times.eval = NULL, centered = FALSE) {
@@ -251,10 +271,19 @@ glmnet.basesurv = function(
 #'
 #' Derived from c060::predictProb.coxnet
 #'
+#' @param object \code{ncvreg} model object
+#' @param time Survival time
+#' @param event Status indicator
+#' @param x Predictor matrix
+#' @param survtime Survival time to evaluate
+#'
+#' @export ncvreg.survcurve
+#'
 #' @return list containing predicted survival probabilities and
 #' linear predictors for all samples
 #'
-#' @keywords internal
+#' @examples
+#' NULL
 ncvreg.survcurve = function(object, time, event, x, survtime) {
 
   lp = as.numeric(predict(object, X = data.matrix(x), type = 'link'))
@@ -273,11 +302,21 @@ ncvreg.survcurve = function(object, time, event, x, survtime) {
 #'
 #' Derived from \code{peperr:::basesurv} and \code{gbm::basehaz.gbm}.
 #'
+#' @param time Survival time
+#' @param event Status indicator
+#' @param lp Linear predictors
+#' @param times.eval Survival time to evaluate
+#' @param centered Should we center the survival curve?
+#' See \code{\link[survival]{basehaz}} for details.
+#'
 #' @importFrom stats approx
+#'
+#' @export ncvreg.basesurv
 #'
 #' @return list containing cumulative base hazard
 #'
-#' @keywords internal
+#' @examples
+#' NULL
 ncvreg.basesurv = function(
   time, event, lp,
   times.eval = NULL, centered = FALSE) {
@@ -307,10 +346,19 @@ ncvreg.basesurv = function(
 #'
 #' Derived from c060::predictProb.coxnet
 #'
+#' @param object \code{penalized} model object
+#' @param time Survival time
+#' @param event Status indicator
+#' @param x Predictor matrix
+#' @param survtime Survival time to evaluate
+#'
+#' @export penalized.survcurve
+#'
 #' @return list containing predicted survival probabilities and
 #' linear predictors for all samples
 #'
-#' @keywords internal
+#' @examples
+#' NULL
 penalized.survcurve = function(object, time, event, x, survtime) {
 
   lp = as.numeric(object@lin.pred)
@@ -329,11 +377,21 @@ penalized.survcurve = function(object, time, event, x, survtime) {
 #'
 #' Derived from \code{peperr:::basesurv} and \code{gbm::basehaz.gbm}.
 #'
+#' @param time Survival time
+#' @param event Status indicator
+#' @param lp Linear predictors
+#' @param times.eval Survival time to evaluate
+#' @param centered Should we center the survival curve?
+#' See \code{\link[survival]{basehaz}} for details.
+#'
 #' @importFrom stats approx
+#'
+#' @export penalized.basesurv
 #'
 #' @return list containing cumulative base hazard
 #'
-#' @keywords internal
+#' @examples
+#' NULL
 penalized.basesurv = function(
   time, event, lp,
   times.eval = NULL, centered = FALSE) {
