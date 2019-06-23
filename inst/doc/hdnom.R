@@ -3,131 +3,143 @@ library("hdnom")
 
 ## ------------------------------------------------------------------------
 data("smart")
-x = as.matrix(smart[, -c(1, 2)])
-time = smart$TEVENT
-event = smart$EVENT
-
-library("survival")
-y = Surv(time, event)
+x <- as.matrix(smart[, -c(1, 2)])
+time <- smart$TEVENT
+event <- smart$EVENT
+y <- survival::Surv(time, event)
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  # enable parallel parameter tuning
 #  suppressMessages(library("doParallel"))
 #  registerDoParallel(detectCores())
 #  
-#  fit = hdcox.aenet(x, y, nfolds = 10, rule = "lambda.1se",
-#                    seed = c(5, 7), parallel = TRUE)
+#  fit <- fit_aenet(x, y, nfolds = 10, rule = "lambda.1se", seed = c(5, 7), parallel = TRUE)
 #  names(fit)
 
 ## ---- echo = FALSE-------------------------------------------------------
-fit = readRDS("fit.rds")
+fit <- readRDS("fit.rds")
 
 ## ------------------------------------------------------------------------
-model  = fit$aenet_model
-alpha  = fit$aenet_best_alpha
-lambda = fit$aenet_best_lambda
-adapen = fit$pen_factor
+model <- fit$model
+alpha <- fit$alpha
+lambda <- fit$lambda
+adapen <- fit$pen_factor
 
 ## ---- fig.width = 8, fig.height = 8, out.width = 600, out.height = 600----
-suppressMessages(library("rms"))
-x.df = as.data.frame(x)
-dd = datadist(x.df)
-options(datadist = "dd")
+nom <- as_nomogram(
+  fit, x, time, event,
+  pred.at = 365 * 2,
+  funlabel = "2-Year Overall Survival Probability"
+)
 
-nom = hdnom.nomogram(model, model.type = "aenet",
-                     x, time, event, x.df, pred.at = 365 * 2,
-                     funlabel = "2-Year Overall Survival Probability")
 plot(nom)
 
 ## ------------------------------------------------------------------------
-val.int = hdnom.validate(x, time, event, model.type = "aenet",
-                         alpha = alpha, lambda = lambda, pen.factor = adapen,
-                         method = "bootstrap", boot.times = 10,
-                         tauc.type = "UNO", tauc.time = seq(1, 5, 0.5) * 365,
-                         seed = 42, trace = FALSE)
-val.int
-summary(val.int)
+val_int <- validate(
+  x, time, event,
+  model.type = "aenet",
+  alpha = alpha, lambda = lambda, pen.factor = adapen,
+  method = "bootstrap", boot.times = 10,
+  tauc.type = "UNO", tauc.time = seq(1, 5, 0.5) * 365,
+  seed = 42, trace = FALSE
+)
 
-## ---- fig.width = 8, fig.height = 8, out.width = 600, out.height = 600----
-plot(val.int)
+print(val_int)
+summary(val_int)
 
-## ---- fig.width = 8, fig.height = 8, out.width = 600, out.height = 600----
-x_new = as.matrix(smart[, -c(1, 2)])[1001:2000, ]
-time_new = smart$TEVENT[1001:2000]
-event_new = smart$EVENT[1001:2000]
+## ---- fig.width = 8, fig.height = 8, out.width = 500, out.height = 500----
+plot(val_int)
 
-# External validation with time-dependent AUC
-val.ext =
-  hdnom.external.validate(fit, x, time, event,
-                          x_new, time_new, event_new,
-                          tauc.type = "UNO",
-                          tauc.time = seq(0.25, 2, 0.25) * 365)
+## ---- fig.width = 8, fig.height = 8, out.width = 500, out.height = 500----
+x_new <- as.matrix(smart[, -c(1, 2)])[1001:2000, ]
+time_new <- smart$TEVENT[1001:2000]
+event_new <- smart$EVENT[1001:2000]
 
-val.ext
-summary(val.ext)
-plot(val.ext)
+val_ext <- validate_external(
+  fit, x, time, event,
+  x_new, time_new, event_new,
+  tauc.type = "UNO",
+  tauc.time = seq(0.25, 2, 0.25) * 365
+)
 
-## ------------------------------------------------------------------------
-cal.int = hdnom.calibrate(x, time, event, model.type = "aenet",
-                          alpha = alpha, lambda = lambda, pen.factor = adapen,
-                          method = "bootstrap", boot.times = 10,
-                          pred.at = 365 * 5, ngroup = 3,
-                          seed = 42, trace = FALSE)
-cal.int
-summary(cal.int)
-
-## ---- fig.width = 8, fig.height = 8, out.width = 600, out.height = 600----
-plot(cal.int, xlim = c(0.5, 1), ylim = c(0.5, 1))
-
-## ---- fig.width = 8, fig.height = 8, out.width = 600, out.height = 600----
-cal.ext =
-  hdnom.external.calibrate(fit, x, time, event,
-                           x_new, time_new, event_new,
-                           pred.at = 365 * 5, ngroup = 3)
-
-cal.ext
-summary(cal.ext)
-plot(cal.ext, xlim = c(0.5, 1), ylim = c(0.5, 1))
-
-## ---- fig.width = 8, fig.height = 8, out.width = 600, out.height = 600----
-hdnom.kmplot(cal.int, group.name = c('High risk', 'Medium risk', 'Low risk'),
-             time.at = 1:6 * 365)
-
-hdnom.kmplot(cal.ext, group.name = c('High risk', 'Medium risk', 'Low risk'),
-             time.at = 1:6 * 365)
+print(val_ext)
+summary(val_ext)
+plot(val_ext)
 
 ## ------------------------------------------------------------------------
-cal.int.logrank = hdnom.logrank(cal.int)
-cal.int.logrank
-cal.int.logrank$pval
-cal.ext.logrank = hdnom.logrank(cal.ext)
-cal.ext.logrank
-cal.ext.logrank$pval
+cal_int <- calibrate(
+  x, time, event,
+  model.type = "aenet",
+  alpha = alpha, lambda = lambda, pen.factor = adapen,
+  method = "bootstrap", boot.times = 10,
+  pred.at = 365 * 5, ngroup = 3,
+  seed = 42, trace = FALSE
+)
+
+print(cal_int)
+summary(cal_int)
+
+## ---- fig.width = 8, fig.height = 8, out.width = 500, out.height = 500----
+plot(cal_int, xlim = c(0.5, 1), ylim = c(0.5, 1))
+
+## ---- fig.width = 8, fig.height = 8, out.width = 500, out.height = 500----
+cal_ext <- calibrate_external(
+  fit, x, time, event,
+  x_new, time_new, event_new,
+  pred.at = 365 * 5, ngroup = 3
+)
+
+print(cal_ext)
+summary(cal_ext)
+plot(cal_ext, xlim = c(0.5, 1), ylim = c(0.5, 1))
+
+## ---- fig.width = 9, fig.height = 6, out.width = 600, out.height = 400----
+kmplot(
+  cal_int,
+  group.name = c("High risk", "Medium risk", "Low risk"),
+  time.at = 1:6 * 365
+)
+
+kmplot(
+  cal_ext,
+  group.name = c("High risk", "Medium risk", "Low risk"),
+  time.at = 1:6 * 365
+)
+
+## ------------------------------------------------------------------------
+cal_int_logrank <- logrank_test(cal_int)
+cal_int_logrank
+cal_int_logrank$pval
+
+cal_ext_logrank <- logrank_test(cal_ext)
+cal_ext_logrank
+cal_ext_logrank$pval
 
 ## ---- fig.width = 8, fig.height = 6.4, out.width = 600, out.height = 480----
-cmp.val =
-  hdnom.compare.validate(x, time, event,
-                         model.type = c("lasso", "alasso"),
-                         method = "cv", nfolds = 5, tauc.type = "UNO",
-                         tauc.time = seq(0.25, 2, 0.25) * 365,
-                         seed = 42, trace = FALSE)
+cmp_val <- compare_by_validate(
+  x, time, event,
+  model.type = c("lasso", "alasso"),
+  method = "cv", nfolds = 5, tauc.type = "UNO",
+  tauc.time = seq(0.25, 2, 0.25) * 365,
+  seed = 42, trace = FALSE
+)
 
-cmp.val
-summary(cmp.val)
-plot(cmp.val)
-plot(cmp.val, interval = TRUE)
+print(cmp_val)
+summary(cmp_val)
+plot(cmp_val)
+plot(cmp_val, interval = TRUE)
 
 ## ---- fig.width = 8, fig.height = 6.4, out.width = 600, out.height = 480----
-cmp.cal =
-  hdnom.compare.calibrate(x, time, event,
-                          model.type = c("lasso", "alasso"),
-                          method = "cv", nfolds = 5,
-                          pred.at = 365 * 9, ngroup = 5,
-                          seed = 42, trace = FALSE)
+cmp_cal <- compare_by_calibrate(
+  x, time, event,
+  model.type = c("lasso", "alasso"),
+  method = "cv", nfolds = 5,
+  pred.at = 365 * 9, ngroup = 5,
+  seed = 42, trace = FALSE
+)
 
-cmp.cal
-summary(cmp.cal)
-plot(cmp.cal, xlim = c(0.3, 1), ylim = c(0.3, 1))
+print(cmp_cal)
+summary(cmp_cal)
+plot(cmp_cal, xlim = c(0.3, 1), ylim = c(0.3, 1))
 
 ## ------------------------------------------------------------------------
 predict(fit, x, y, newx = x[101:105, ], pred.at = 1:10 * 365)

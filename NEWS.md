@@ -1,3 +1,29 @@
+# hdnom 6.0.0
+
+This version is a major refactor of the package, with several technical adjustments to improve the functional interface, code structure, and execution performance. As a result, a few critical API-breaking changes have been made. Please update your previous code that calls hdnom accordingly. For the detailed changes, please check the updated items below.
+
+## Improvements
+
+### General
+
+- Renamed exported functions. Most of the exported function have been renamed to be more meaningful and succinct. For example, `hdcox.*()` are renamed as `fit_*()`, `hdnom.nomogram()` is renamed as `as_nomogram()`, `hdnom.validate()` is renamed as `validate()`, and so on.
+- Removed the dependency on `rms`, by reusing a minimal set of code from `rms` for nomogram construction and plotting. This results in clearer code structure, better maintainability, and faster package installation/loading speed. Also removed other non-essential package dependencies.
+- The first argument for `print` functions are now returned invisbily, to make it easier to use them in a pipe.
+
+### Model Fitting
+
+- The components in the model fitting function returns are now unified across model types. For example, the model object can all be accessed by `fit$model`, and the selected "optimal" hyperparameters can be accessed by `fit$lambda`. The model type is now stored explicitly as `fit$type`.
+
+### Nomograms
+
+- `as_nomogram` (previously `hdnom.nomogram()`) now accepts the fitted model objects directly instead of the `$model` component. It now will recognize the model type automatically, thus the previous arguments `model.type` has been deprecated. so that it is easier to chain the function calls together using `magrittr`.
+- In `as_nomogram`, the previous `ddist` argument is not needed anymore and has been removed. There is also no more need to set a `datadist` object as a into the global options variable (which was required in the `rms` user flow).
+- The new nomogram implementation prints and plots the nomogram for the penalized regression models directly. This supersedes the old implementation, which fits an OLS model to regress the linear predictors on the same set of predictors selected by the penalized Cox regression model, aiming to approximate the penalized model. The numerical or visual difference is minimal, though.
+
+### Visualizations
+
+- Add a new ggplot2 theme `theme_hdnom()` and applies it to most of the validation, calibration, and comparison plots for a consistent, cleaner look across plots within the package.
+
 # hdnom 5.0 (2018-05-13)
 
 ## Improvements
@@ -31,7 +57,7 @@
 ## Bug Fixes
 
 - Fixed issues in parameter tuning and cross-validation procedures for
-fused lasso models ([afc49c9](https://github.com/road2stat/hdnom/commit/afc49c9ad952edd5881a3e2f14a3503981d213c7)).
+fused lasso models ([afc49c9](https://github.com/nanxstats/hdnom/commit/afc49c9ad952edd5881a3e2f14a3503981d213c7)).
 The user-visible change is that two parameters `lambda1` and `lambda2`
 instead of a single "lambda" are now required to fit, validate, and
 calibrate fused lasso models.
@@ -68,7 +94,7 @@ substantially higher value (5e+4).
 - More concrete examples for several functions.
 - Introduce argument `ylim` for `plot.hdnom.validate()`,
   `plot.hdnom.external.validate()`, and `plot.hdnom.compare.validate()`
-  ([#4](https://github.com/road2stat/hdnom/issues/4)).
+  ([#4](https://github.com/nanxstats/hdnom/issues/4)).
 
 # hdnom 3.7 (2016-03-25)
 
