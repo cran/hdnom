@@ -6,22 +6,21 @@
 \alias{hdnom-package}
 \title{hdnom: Benchmarking and Visualization Toolkit for Penalized Cox Models}
 \description{
-Creates nomogram visualizations for penalized Cox regression
-    models, with the support of reproducible survival model building,
-    validation, calibration, and comparison for high-dimensional data.
+\if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
+
+Creates nomogram visualizations for penalized Cox regression models, with the support of reproducible survival model building, validation, calibration, and comparison for high-dimensional data.
 }
 \seealso{
 Useful links:
 \itemize{
   \item \url{https://nanx.me/hdnom/}
   \item \url{https://github.com/nanxstats/hdnom}
-  \item \url{http://hdnom.io}
   \item Report bugs at \url{https://github.com/nanxstats/hdnom/issues}
 }
 
 }
 \author{
-\strong{Maintainer}: Nan Xiao \email{me@nanx.me} (0000-0002-0250-5673)
+\strong{Maintainer}: Nan Xiao \email{me@nanx.me} (\href{https://orcid.org/0000-0002-0250-5673}{ORCID})
 
 Authors:
 \itemize{
@@ -31,7 +30,10 @@ Authors:
 
 Other contributors:
 \itemize{
-  \item Frank Harrell \email{f.harrell@vanderbilt.edu} [contributor]
+  \item Frank Harrell \email{f.harrell@vanderbilt.edu} (rms author) [contributor]
+  \item Sergej Potapov (survAUC author) [contributor]
+  \item Werner Adler (survAUC author) [contributor]
+  \item Matthias Schmid (survAUC author) [contributor]
 }
 
 }

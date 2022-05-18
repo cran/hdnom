@@ -1,3 +1,10 @@
+# hdnom 6.0.1
+
+## Improvements
+
+- Removed the dependency on `survAUC`. Ported the essential C code for computing
+time-dependent AUC and fixed the build issues in r-devel.
+
 # hdnom 6.0.0
 
 This version is a major refactor of the package, with several technical adjustments to improve the functional interface, code structure, and execution performance. As a result, a few critical API-breaking changes have been made. Please update your previous code that calls hdnom accordingly. For the detailed changes, please check the updated items below.
@@ -85,7 +92,7 @@ substantially higher value (5e+4).
 ## Improvements
 
 - Added Windows continuous integration using AppVeyor.
-- New website design for project website: consistent with the web application hdnom.io.
+- New website design for project website: consistent with the web application.
 
 # hdnom 4.0 (2016-07-05)
 
@@ -154,7 +161,7 @@ substantially higher value (5e+4).
 ## New Features
 
 - New documentation website.
-- New Shiny web application (http://hdnom.io).
+- New Shiny web application.
 
 ## Improvements
 
