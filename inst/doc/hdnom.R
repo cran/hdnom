@@ -1,7 +1,13 @@
 ## ---- include=FALSE-----------------------------------------------------------
 knitr::opts_chunk$set(
   comment = "#>",
-  collapse = TRUE
+  collapse = TRUE,
+  dev = "ragg_png",
+  dpi = 72,
+  fig.retina = 2,
+  fig.align = "center",
+  out.width = "100%",
+  pngquant = "--speed=1 --quality=50"
 )
 
 ## -----------------------------------------------------------------------------
