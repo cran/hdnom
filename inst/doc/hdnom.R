@@ -1,4 +1,4 @@
-## ---- include=FALSE-----------------------------------------------------------
+## ----include=FALSE------------------------------------------------------------
 knitr::opts_chunk$set(
   comment = "#>",
   collapse = TRUE,
@@ -20,14 +20,14 @@ time <- smart$TEVENT
 event <- smart$EVENT
 y <- survival::Surv(time, event)
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  suppressMessages(library("doParallel"))
 #  registerDoParallel(detectCores())
 #  
 #  fit <- fit_aenet(x, y, nfolds = 10, rule = "lambda.1se", seed = c(5, 7), parallel = TRUE)
 #  names(fit)
 
-## ---- echo = FALSE------------------------------------------------------------
+## ----echo = FALSE-------------------------------------------------------------
 fit <- readRDS("fit.rds")
 
 ## -----------------------------------------------------------------------------
@@ -36,7 +36,7 @@ alpha <- fit$alpha
 lambda <- fit$lambda
 adapen <- fit$pen_factor
 
-## ---- fig.width = 8, fig.height = 8, out.width = 600, out.height = 600--------
+## ----fig.width = 8, fig.height = 8, out.width = 600, out.height = 600---------
 nom <- as_nomogram(
   fit, x, time, event,
   pred.at = 365 * 2,
@@ -58,10 +58,10 @@ val_int <- validate(
 print(val_int)
 summary(val_int)
 
-## ---- fig.width = 8, fig.height = 8, out.width = 500, out.height = 500--------
+## ----fig.width = 8, fig.height = 8, out.width = 500, out.height = 500---------
 plot(val_int)
 
-## ---- fig.width = 8, fig.height = 8, out.width = 500, out.height = 500--------
+## ----fig.width = 8, fig.height = 8, out.width = 500, out.height = 500---------
 x_new <- as.matrix(smart[, -c(1, 2)])[1001:2000, ]
 time_new <- smart$TEVENT[1001:2000]
 event_new <- smart$EVENT[1001:2000]
@@ -90,10 +90,10 @@ cal_int <- calibrate(
 print(cal_int)
 summary(cal_int)
 
-## ---- fig.width = 8, fig.height = 8, out.width = 500, out.height = 500--------
+## ----fig.width = 8, fig.height = 8, out.width = 500, out.height = 500---------
 plot(cal_int, xlim = c(0.5, 1), ylim = c(0.5, 1))
 
-## ---- fig.width = 8, fig.height = 8, out.width = 500, out.height = 500--------
+## ----fig.width = 8, fig.height = 8, out.width = 500, out.height = 500---------
 cal_ext <- calibrate_external(
   fit, x, time, event,
   x_new, time_new, event_new,
@@ -104,7 +104,7 @@ print(cal_ext)
 summary(cal_ext)
 plot(cal_ext, xlim = c(0.5, 1), ylim = c(0.5, 1))
 
-## ---- fig.width = 9, fig.height = 6, out.width = 600, out.height = 400--------
+## ----fig.width = 9, fig.height = 6, out.width = 600, out.height = 400---------
 kmplot(
   cal_int,
   group.name = c("High risk", "Medium risk", "Low risk"),
@@ -126,7 +126,7 @@ cal_ext_logrank <- logrank_test(cal_ext)
 cal_ext_logrank
 cal_ext_logrank$pval
 
-## ---- fig.width = 8, fig.height = 6.4, out.width = 600, out.height = 480------
+## ----fig.width = 8, fig.height = 6.4, out.width = 600, out.height = 480-------
 cmp_val <- compare_by_validate(
   x, time, event,
   model.type = c("lasso", "alasso"),
@@ -140,7 +140,7 @@ summary(cmp_val)
 plot(cmp_val)
 plot(cmp_val, interval = TRUE)
 
-## ---- fig.width = 8, fig.height = 6.4, out.width = 600, out.height = 480------
+## ----fig.width = 8, fig.height = 6.4, out.width = 600, out.height = 480-------
 cmp_cal <- compare_by_calibrate(
   x, time, event,
   model.type = c("lasso", "alasso"),

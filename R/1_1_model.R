@@ -52,7 +52,12 @@ fit_lasso <- function(
   )
 
   if (lasso_full$df < 0.5) {
-    stop("Null model produced by the full fit (all coefficients are zero). Please try to tune rule, seed, nfolds, or increase sample size.")
+    stop(
+      paste0(
+        "Null model produced by the full fit (all coefficients are zero). ",
+        "Please try to tune rule, seed, nfolds, or increase sample size."
+      )
+    )
   }
 
   model <- list(
@@ -148,7 +153,12 @@ fit_alasso <- function(
   )
 
   if (alasso_full$df < 0.5) {
-    stop("Null model produced by the full fit (all coefficients are zero). Please try to tune rule, seed, nfolds, or increase sample size.")
+    stop(
+      paste0(
+        "Null model produced by the full fit (all coefficients are zero). ",
+        "Please try to tune rule, seed, nfolds, or increase sample size."
+      )
+    )
   }
 
   adpen_vec <- as.vector(adpen)
@@ -184,7 +194,7 @@ fit_alasso <- function(
 #' for details.
 #' @param seed A random seed for cross-validation fold division.
 #' @param parallel Logical. Enable parallel parameter tuning or not,
-#' default is {FALSE}. To enable parallel tuning, load the
+#' default is \code{FALSE}. To enable parallel tuning, load the
 #' \code{doParallel} package and run \code{registerDoParallel()}
 #' with the number of CPU cores before calling this function.
 #'
@@ -245,7 +255,12 @@ fit_enet <- function(
   )
 
   if (enet_full$df < 0.5) {
-    stop("Null model produced by the full fit (all coefficients are zero). Please try to tune rule, alphas, seed, nfolds, or increase sample size.")
+    stop(
+      paste0(
+        "Null model produced by the full fit (all coefficients are zero). ",
+        "Please try to tune rule, alphas, seed, nfolds, or increase sample size."
+      )
+    )
   }
 
   model <- list(
@@ -276,7 +291,7 @@ fit_enet <- function(
 #' @param seed Two random seeds for cross-validation fold division
 #' in two estimation steps.
 #' @param parallel Logical. Enable parallel parameter tuning or not,
-#' default is {FALSE}. To enable parallel tuning, load the
+#' default is \code{FALSE}. To enable parallel tuning, load the
 #' \code{doParallel} package and run \code{registerDoParallel()}
 #' with the number of CPU cores before calling this function.
 #'
@@ -374,7 +389,12 @@ fit_aenet <- function(
   )
 
   if (aenet_full$df < 0.5) {
-    stop("Null model produced by the full fit (all coefficients are zero). Please try to tune rule, alphas, seed, nfolds, or increase sample size.")
+    stop(
+      paste0(
+        "Null model produced by the full fit (all coefficients are zero). ",
+        "Please try to tune rule, alphas, seed, nfolds, or increase sample size."
+      )
+    )
   }
 
   adpen_vec <- as.vector(adpen)
@@ -413,7 +433,7 @@ fit_aenet <- function(
 #' @param trace Output the cross-validation parameter tuning
 #' progress or not. Default is \code{FALSE}.
 #' @param parallel Logical. Enable parallel parameter tuning or not,
-#' default is {FALSE}. To enable parallel tuning, load the
+#' default is \code{FALSE}. To enable parallel tuning, load the
 #' \code{doParallel} package and run \code{registerDoParallel()}
 #' with the number of CPU cores before calling this function.
 #'
@@ -469,7 +489,12 @@ fit_scad <- function(
   )
 
   if (all(abs(scad_full$beta[-1L, ]) < .Machine$double.eps)) {
-    stop("Null model produced by the full fit (all coefficients are zero). Please try to tune gammas, seed, nfolds, or increase sample size.")
+    stop(
+      paste0(
+        "Null model produced by the full fit (all coefficients are zero). ",
+        "Please try to tune gammas, seed, nfolds, or increase sample size."
+      )
+    )
   }
 
   model <- list(
@@ -501,7 +526,7 @@ fit_scad <- function(
 #' @param trace Output the cross-validation parameter tuning
 #' progress or not. Default is \code{FALSE}.
 #' @param parallel Logical. Enable parallel parameter tuning or not,
-#' default is {FALSE}. To enable parallel tuning, load the
+#' default is \code{FALSE}. To enable parallel tuning, load the
 #' \code{doParallel} package and run \code{registerDoParallel()}
 #' with the number of CPU cores before calling this function.
 #'
@@ -564,7 +589,12 @@ fit_snet <- function(
   )
 
   if (all(abs(snet_full$beta[-1L, ]) < .Machine$double.eps)) {
-    stop("Null model produced by the full fit (all coefficients are zero). Please try to tune gammas, alphas, seed, nfolds, or increase sample size.")
+    stop(
+      paste0(
+        "Null model produced by the full fit (all coefficients are zero). ",
+        "Please try to tune gammas, alphas, seed, nfolds, or increase sample size."
+      )
+    )
   }
 
   model <- list(
@@ -596,7 +626,7 @@ fit_snet <- function(
 #' @param trace Output the cross-validation parameter tuning
 #' progress or not. Default is \code{FALSE}.
 #' @param parallel Logical. Enable parallel parameter tuning or not,
-#' default is {FALSE}. To enable parallel tuning, load the
+#' default is \code{FALSE}. To enable parallel tuning, load the
 #' \code{doParallel} package and run \code{registerDoParallel()}
 #' with the number of CPU cores before calling this function.
 #'
@@ -650,7 +680,12 @@ fit_mcp <- function(
 
   # Deal with null models, thanks for the suggestion from Prof. Patrick Breheny
   if (all(abs(mcp_full$beta[-1L, ]) < .Machine$double.eps)) {
-    stop("Null model produced by the full fit (all coefficients are zero). Please try to tune gammas, seed, nfolds, or increase sample size.")
+    stop(
+      paste0(
+        "Null model produced by the full fit (all coefficients are zero). ",
+        "Please try to tune gammas, seed, nfolds, or increase sample size."
+      )
+    )
   }
 
   model <- list(
@@ -682,7 +717,7 @@ fit_mcp <- function(
 #' @param trace Output the cross-validation parameter tuning
 #' progress or not. Default is \code{FALSE}.
 #' @param parallel Logical. Enable parallel parameter tuning or not,
-#' default is {FALSE}. To enable parallel tuning, load the
+#' default is \code{FALSE}. To enable parallel tuning, load the
 #' \code{doParallel} package and run \code{registerDoParallel()}
 #' with the number of CPU cores before calling this function.
 #'
@@ -745,7 +780,12 @@ fit_mnet <- function(
   )
 
   if (all(abs(mnet_full$beta[-1L, ]) < .Machine$double.eps)) {
-    stop("Null model produced by the full fit (all coefficients are zero). Please try to tune gammas, alphas, seed, nfolds, or increase sample size.")
+    stop(
+      paste0(
+        "Null model produced by the full fit (all coefficients are zero). ",
+        "Please try to tune gammas, alphas, seed, nfolds, or increase sample size."
+      )
+    )
   }
 
   model <- list(
@@ -782,7 +822,7 @@ fit_mnet <- function(
 #' @param trace Output the cross-validation parameter tuning
 #' progress or not. Default is \code{FALSE}.
 #' @param parallel Logical. Enable parallel parameter tuning or not,
-#' default is {FALSE}. To enable parallel tuning, load the
+#' default is \code{FALSE}. To enable parallel tuning, load the
 #' \code{doParallel} package and run \code{registerDoParallel()}
 #' with the number of CPU cores before calling this function.
 #' @param ... other parameters to \code{\link[penalized]{cvl}}
@@ -850,7 +890,12 @@ fit_flasso <- function(
   )
 
   if (all(abs(flasso_full@penalized) < .Machine$double.eps)) {
-    stop("Null model produced by the full fit (all coefficients are zero). Please try changing the seed, nfolds, or increase sample size.")
+    stop(
+      paste0(
+        "Null model produced by the full fit (all coefficients are zero). ",
+        "Please try changing the seed, nfolds, or increase sample size."
+      )
+    )
   }
 
   model <- list(
