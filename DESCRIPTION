@@ -1,7 +1,7 @@
 Package: hdnom
 Type: Package
 Title: Benchmarking and Visualization Toolkit for Penalized Cox Models
-Version: 6.0.3
+Version: 6.0.4
 Authors@R: c(
     person("Nan", "Xiao", email = "me@nanx.me", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-0250-5673")),
@@ -25,9 +25,9 @@ Imports: foreach, ggplot2, glmnet, gridExtra, ncvreg, penalized,
 Suggests: doParallel, knitr, ragg, rmarkdown
 VignetteBuilder: knitr
 Encoding: UTF-8
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 NeedsCompilation: yes
-Packaged: 2024-03-03 02:27:09 UTC; nanx
+Packaged: 2024-09-05 04:46:28 UTC; nanx
 Author: Nan Xiao [aut, cre] (<https://orcid.org/0000-0002-0250-5673>),
   Qing-Song Xu [aut],
   Miao-Zhu Li [aut],
@@ -37,4 +37,4 @@ Author: Nan Xiao [aut, cre] (<https://orcid.org/0000-0002-0250-5673>),
   Matthias Schmid [ctb] (survAUC author)
 Maintainer: Nan Xiao <me@nanx.me>
 Repository: CRAN
-Date/Publication: 2024-03-03 03:20:02 UTC
+Date/Publication: 2024-09-05 08:10:02 UTC
