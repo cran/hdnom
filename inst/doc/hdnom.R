@@ -21,11 +21,11 @@ event <- smart$EVENT
 y <- survival::Surv(time, event)
 
 ## ----eval = FALSE-------------------------------------------------------------
-#  suppressMessages(library("doParallel"))
-#  registerDoParallel(detectCores())
-#  
-#  fit <- fit_aenet(x, y, nfolds = 10, rule = "lambda.1se", seed = c(5, 7), parallel = TRUE)
-#  names(fit)
+# suppressMessages(library("doParallel"))
+# registerDoParallel(detectCores())
+# 
+# fit <- fit_aenet(x, y, nfolds = 10, rule = "lambda.min", seed = c(5, 7), parallel = TRUE)
+# names(fit)
 
 ## ----echo = FALSE-------------------------------------------------------------
 fit <- readRDS("fit.rds")
