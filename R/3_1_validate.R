@@ -22,6 +22,7 @@
 #' model fits on the resampled data. From the fitted Cox model.
 #' @param pen.factor Penalty factors to apply to each coefficient.
 #' From the fitted \emph{adaptive lasso} or \emph{adaptive elastic-net} model.
+#' @param cox.ties Cox tie-handling method for glmnet model refits.
 #' @param gamma Value of the model parameter gamma for
 #' MCP/SCAD/Mnet/Snet models.
 #' @param lambda1 Value of the penalty parameter lambda1 for fused lasso model.
@@ -67,7 +68,7 @@
 #' event <- smart$EVENT[1:500]
 #' y <- survival::Surv(time, event)
 #'
-#' fit <- fit_lasso(x, y, nfolds = 5, rule = "lambda.1se", seed = 11)
+#' fit <- fit_lasso(x, y, nfolds = 5, rule = "lambda.min", seed = 11)
 #'
 #' # Model validation by bootstrap with time-dependent AUC
 #' # Normally boot.times should be set to 200 or more,
@@ -158,20 +159,23 @@
 #' # summary(val.repcv)
 #' # plot(val.repcv)
 validate <- function(
-    x, time, event,
-    model.type = c(
-      "lasso", "alasso", "flasso", "enet", "aenet",
-      "mcp", "mnet", "scad", "snet"
-    ),
-    alpha, lambda, pen.factor = NULL, gamma,
-    lambda1, lambda2,
-    method = c("bootstrap", "cv", "repeated.cv"),
-    boot.times = NULL, nfolds = NULL, rep.times = NULL,
-    tauc.type = c("CD", "SZ", "UNO"), tauc.time,
-    seed = 1001, trace = TRUE) {
+  x, time, event,
+  model.type = c(
+    "lasso", "alasso", "flasso", "enet", "aenet",
+    "mcp", "mnet", "scad", "snet"
+  ),
+  alpha, lambda, pen.factor = NULL, gamma,
+  lambda1, lambda2,
+  method = c("bootstrap", "cv", "repeated.cv"),
+  boot.times = NULL, nfolds = NULL, rep.times = NULL,
+  tauc.type = c("CD", "SZ", "UNO"), tauc.time,
+  cox.ties = c("breslow", "efron"),
+  seed = 1001, trace = TRUE
+) {
   model.type <- match.arg(model.type)
   method <- match.arg(method)
   tauc.type <- match.arg(tauc.type)
+  cox.ties <- match.arg(cox.ties)
 
   set.seed(seed)
 
@@ -204,7 +208,8 @@ validate <- function(
           glmnet_validate_tauc(
             x_tr = x_tr, x_te = x_te, y_tr = y_tr, y_te = y_te,
             alpha = alpha, lambda = lambda, pen.factor = pen.factor,
-            tauc.type = tauc.type, tauc.time = tauc.time
+            tauc.type = tauc.type, tauc.time = tauc.time,
+            cox.ties = cox.ties
           )
       }
 
@@ -257,7 +262,8 @@ validate <- function(
           glmnet_validate_tauc(
             x_tr = x_tr, x_te = x_te, y_tr = y_tr, y_te = y_te,
             alpha = alpha, lambda = lambda, pen.factor = pen.factor,
-            tauc.type = tauc.type, tauc.time = tauc.time
+            tauc.type = tauc.type, tauc.time = tauc.time,
+            cox.ties = cox.ties
           )
       }
 
@@ -316,7 +322,8 @@ validate <- function(
             glmnet_validate_tauc(
               x_tr = x_tr, x_te = x_te, y_tr = y_tr, y_te = y_te,
               alpha = alpha, lambda = lambda, pen.factor = pen.factor,
-              tauc.type = tauc.type, tauc.time = tauc.time
+              tauc.type = tauc.type, tauc.time = tauc.time,
+              cox.ties = cox.ties
             )
         }
 
@@ -355,6 +362,7 @@ validate <- function(
         attr(tauc, "alpha") <- alpha
         attr(tauc, "lambda") <- lambda
         attr(tauc, "pen.factor") <- pen.factor
+        attr(tauc, "cox.ties") <- cox.ties
         attr(tauc, "boot.times") <- boot.times
         attr(tauc, "tauc.type") <- tauc.type
         attr(tauc, "tauc.time") <- tauc.time
@@ -400,6 +408,7 @@ validate <- function(
         attr(tauc, "alpha") <- alpha
         attr(tauc, "lambda") <- lambda
         attr(tauc, "pen.factor") <- pen.factor
+        attr(tauc, "cox.ties") <- cox.ties
         attr(tauc, "nfolds") <- nfolds
         attr(tauc, "tauc.type") <- tauc.type
         attr(tauc, "tauc.time") <- tauc.time
@@ -445,6 +454,7 @@ validate <- function(
         attr(tauc, "alpha") <- alpha
         attr(tauc, "lambda") <- lambda
         attr(tauc, "pen.factor") <- pen.factor
+        attr(tauc, "cox.ties") <- cox.ties
         attr(tauc, "nfolds") <- nfolds
         attr(tauc, "rep.times") <- rep.times
         attr(tauc, "tauc.type") <- tauc.type

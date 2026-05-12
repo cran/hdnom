@@ -26,6 +26,7 @@
 #' the time-dependent AUC.
 #' @param rule Model selection criterion for glmnet models,
 #' `"lambda.min"` or `"lambda.1se"`. Defaults to `"lambda.min"`.
+#' @param cox.ties Cox tie-handling method for glmnet model fits and refits.
 #' @param seed A random seed for cross-validation fold division.
 #' @param trace Logical. Output the validation progress or not.
 #' Default is \code{TRUE}.
@@ -67,19 +68,22 @@
 #' plot(cmp.val.cv)
 #' plot(cmp.val.cv, interval = TRUE)
 compare_by_validate <- function(
-    x, time, event,
-    model.type = c(
-      "lasso", "alasso", "flasso", "enet", "aenet",
-      "mcp", "mnet", "scad", "snet"
-    ),
-    method = c("bootstrap", "cv", "repeated.cv"),
-    boot.times = NULL, nfolds = NULL, rep.times = NULL,
-    tauc.type = c("CD", "SZ", "UNO"), tauc.time,
-    rule = c("lambda.min", "lambda.1se"),
-    seed = 1001, trace = TRUE) {
+  x, time, event,
+  model.type = c(
+    "lasso", "alasso", "flasso", "enet", "aenet",
+    "mcp", "mnet", "scad", "snet"
+  ),
+  method = c("bootstrap", "cv", "repeated.cv"),
+  boot.times = NULL, nfolds = NULL, rep.times = NULL,
+  tauc.type = c("CD", "SZ", "UNO"), tauc.time,
+  rule = c("lambda.min", "lambda.1se"),
+  cox.ties = c("breslow", "efron"),
+  seed = 1001, trace = TRUE
+) {
   method <- match.arg(method)
   tauc.type <- match.arg(tauc.type)
   rule <- match.arg(rule)
+  cox.ties <- match.arg(cox.ties)
 
   if (!all(model.type %in% c(
     "lasso", "alasso", "flasso", "enet", "aenet",
@@ -123,7 +127,8 @@ compare_by_validate <- function(
         cvfit <- fit_lasso(
           x, Surv(time, event),
           nfolds = 5L,
-          rule = rule, seed = seed
+          rule = rule, seed = seed,
+          cox.ties = cox.ties
         )
 
         tauclist[[i]] <- hdnom::validate(
@@ -132,6 +137,7 @@ compare_by_validate <- function(
           alpha = 1, lambda = cvfit$"lambda",
           method = method, boot.times = boot.times, nfolds = nfolds, rep.times = rep.times,
           tauc.type = tauc.type, tauc.time = tauc.time,
+          cox.ties = cox.ties,
           seed = seed, trace = trace
         )
       },
@@ -139,7 +145,8 @@ compare_by_validate <- function(
         cvfit <- fit_alasso(
           x, Surv(time, event),
           nfolds = 5L,
-          rule = rule, seed = rep(seed, 2)
+          rule = rule, seed = rep(seed, 2),
+          cox.ties = cox.ties
         )
 
         tauclist[[i]] <- hdnom::validate(
@@ -148,6 +155,7 @@ compare_by_validate <- function(
           alpha = 1, lambda = cvfit$"lambda", pen.factor = cvfit$"pen_factor",
           method = method, boot.times = boot.times, nfolds = nfolds, rep.times = rep.times,
           tauc.type = tauc.type, tauc.time = tauc.time,
+          cox.ties = cox.ties,
           seed = seed, trace = trace
         )
       },
@@ -169,7 +177,8 @@ compare_by_validate <- function(
           x, Surv(time, event),
           nfolds = 5L,
           alphas = c(0.1, 0.25, 0.5, 0.75, 0.9), # to reduce computation time
-          rule = rule, seed = seed
+          rule = rule, seed = seed,
+          cox.ties = cox.ties
         )
 
         tauclist[[i]] <- hdnom::validate(
@@ -178,6 +187,7 @@ compare_by_validate <- function(
           alpha = cvfit$"alpha", lambda = cvfit$"lambda",
           method = method, boot.times = boot.times, nfolds = nfolds, rep.times = rep.times,
           tauc.type = tauc.type, tauc.time = tauc.time,
+          cox.ties = cox.ties,
           seed = seed, trace = trace
         )
       },
@@ -186,7 +196,8 @@ compare_by_validate <- function(
           x, Surv(time, event),
           nfolds = 5L,
           alphas = c(0.1, 0.25, 0.5, 0.75, 0.9), # to reduce computation time
-          rule = rule, seed = rep(seed, 2)
+          rule = rule, seed = rep(seed, 2),
+          cox.ties = cox.ties
         )
 
         tauclist[[i]] <- hdnom::validate(
@@ -195,6 +206,7 @@ compare_by_validate <- function(
           alpha = cvfit$"alpha", lambda = cvfit$"lambda", pen.factor = cvfit$"pen_factor",
           method = method, boot.times = boot.times, nfolds = nfolds, rep.times = rep.times,
           tauc.type = tauc.type, tauc.time = tauc.time,
+          cox.ties = cox.ties,
           seed = seed, trace = trace
         )
       },

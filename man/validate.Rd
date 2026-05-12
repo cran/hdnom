@@ -22,6 +22,7 @@ validate(
   rep.times = NULL,
   tauc.type = c("CD", "SZ", "UNO"),
   tauc.time,
+  cox.ties = c("breslow", "efron"),
   seed = 1001,
   trace = TRUE
 )
@@ -79,6 +80,8 @@ Including \code{"CD"} proposed by Chambless and Diao (2006).,
 \item{tauc.time}{Numeric vector. Time points at which to evaluate
 the time-dependent AUC.}
 
+\item{cox.ties}{Cox tie-handling method for glmnet model refits.}
+
 \item{seed}{A random seed for resampling.}
 
 \item{trace}{Logical. Output the validation progress or not.
@@ -94,7 +97,7 @@ time <- smart$TEVENT[1:500]
 event <- smart$EVENT[1:500]
 y <- survival::Surv(time, event)
 
-fit <- fit_lasso(x, y, nfolds = 5, rule = "lambda.1se", seed = 11)
+fit <- fit_lasso(x, y, nfolds = 5, rule = "lambda.min", seed = 11)
 
 # Model validation by bootstrap with time-dependent AUC
 # Normally boot.times should be set to 200 or more,

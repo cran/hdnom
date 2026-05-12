@@ -7,19 +7,23 @@
 #'
 #' @keywords internal
 glmnet_validate_tauc <- function(
-    x_tr, x_te, y_tr, y_te,
-    alpha, lambda, pen.factor,
-    tauc.type, tauc.time) {
+  x_tr, x_te, y_tr, y_te,
+  alpha, lambda, pen.factor,
+  tauc.type, tauc.time,
+  cox.ties
+) {
   if (is.null(pen.factor)) {
     samp_fit <- glmnet(
       x = x_tr, y = y_tr, family = "cox",
-      alpha = alpha, lambda = lambda
+      alpha = alpha, lambda = lambda,
+      cox.ties = cox.ties
     )
   } else {
     samp_fit <- glmnet(
       x = x_tr, y = y_tr, family = "cox",
       alpha = alpha, lambda = lambda,
-      penalty.factor = pen.factor
+      penalty.factor = pen.factor,
+      cox.ties = cox.ties
     )
   }
 
@@ -62,9 +66,10 @@ glmnet_validate_tauc <- function(
 #'
 #' @keywords internal
 ncvreg_validate_tauc <- function(
-    x_tr, x_te, y_tr, y_te, model.type,
-    gamma, alpha, lambda,
-    tauc.type, tauc.time) {
+  x_tr, x_te, y_tr, y_te, model.type,
+  gamma, alpha, lambda,
+  tauc.type, tauc.time
+) {
   if (model.type == "mcp") {
     samp_fit <- ncvreg::ncvsurv(
       X = x_tr, y = y_tr,
@@ -136,9 +141,10 @@ ncvreg_validate_tauc <- function(
 #'
 #' @keywords internal
 penalized_validate_tauc <- function(
-    x_tr, x_te, y_tr, y_te,
-    lambda1, lambda2,
-    tauc.type, tauc.time) {
+  x_tr, x_te, y_tr, y_te,
+  lambda1, lambda2,
+  tauc.type, tauc.time
+) {
   samp_fit <- penalized(
     response = y_tr, penalized = x_tr,
     lambda1 = lambda1, lambda2 = lambda2,

@@ -1,7 +1,7 @@
 Package: hdnom
 Type: Package
 Title: Benchmarking and Visualization Toolkit for Penalized Cox Models
-Version: 6.1.0
+Version: 6.2.0
 Authors@R: c(
     person("Nan", "Xiao", email = "me@nanx.me", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-0250-5673")),
@@ -15,7 +15,7 @@ Authors@R: c(
 Description: Creates nomogram visualizations for penalized Cox regression
     models, with the support of reproducible survival model building,
     validation, calibration, and comparison for high-dimensional data.
-License: GPL-3 | file LICENSE
+License: GPL (>= 3)
 LazyData: TRUE
 URL: https://nanx.me/hdnom/, https://github.com/nanxstats/hdnom
 BugReports: https://github.com/nanxstats/hdnom/issues
@@ -25,9 +25,9 @@ Imports: foreach, ggplot2, glmnet, gridExtra, ncvreg, penalized,
 Suggests: doParallel, knitr, ragg, rmarkdown
 VignetteBuilder: knitr
 Encoding: UTF-8
-RoxygenNote: 7.3.2
+Config/roxygen2/version: 8.0.0
 NeedsCompilation: yes
-Packaged: 2025-06-09 01:57:43 UTC; nanx
+Packaged: 2026-05-11 07:45:41 UTC; nanx
 Author: Nan Xiao [aut, cre] (ORCID: <https://orcid.org/0000-0002-0250-5673>),
   Qing-Song Xu [aut],
   Miao-Zhu Li [aut],
@@ -37,4 +37,4 @@ Author: Nan Xiao [aut, cre] (ORCID: <https://orcid.org/0000-0002-0250-5673>),
   Matthias Schmid [ctb] (survAUC author)
 Maintainer: Nan Xiao <me@nanx.me>
 Repository: CRAN
-Date/Publication: 2025-06-09 04:50:02 UTC
+Date/Publication: 2026-05-12 05:10:07 UTC
