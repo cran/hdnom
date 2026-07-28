@@ -1,11 +1,11 @@
-fd5226c3b3e6fc3ae9d0e94d1cc49da3 *DESCRIPTION
+4d08ac0c366c8b57d191dcfc9d3128c8 *DESCRIPTION
 2f8c534d8e30adfe974ce211f84efde3 *NAMESPACE
-eb76fa0ba8f8bac0bc3fa6efdf0cca92 *NEWS.md
+382babcf3cbed5361ce87a835d2298ba *NEWS.md
 7ba9aa73d1b05dd85f014be036cc2c1b *R/1_1_model.R
 cdff5364285b69be87e18e09e03a5b7c *R/1_2_model_tune.R
 4679a028a3959275acd304c350d18788 *R/1_3_model_method.R
 c050cce84d374b503feffb24c12010ab *R/2_1_nomogram.R
-105a2653cc47d0cc28318825d1f21a2d *R/2_2_convert_model.R
+6faf6f19eec4f6712d742444884c21c9 *R/2_2_convert_model.R
 795a6284c9de443c92ababa0f93bba4f *R/2_3_survial_curves.R
 9fb3a3c5f9e6a4ee789d158ac5e5b048 *R/2_4_nomogram_method.R
 9c48dde5350aa6bd8d4b53466488662d *R/3_1_validate.R
@@ -38,7 +38,7 @@ d10c7adb5b0357b4a798b9943ba8d45a *R/survAUC_Uno.R
 6fe779ef5a5c56862cfc49dc5d56fb22 *R/survAUC_utils.R
 0ef84ba3402e177e20310abdbe52d587 *R/theme_hdnom.R
 26813e7f7cff264c942052c4922cf189 *README.md
-44649efb5cb0dc03b13b870b87467ce8 *build/vignette.rds
+86ba1647f0ff03da6751326f30b8d0ff *build/vignette.rds
 36e96c0ba3723fa7b9061076d7a79dc9 *data/smart.rda
 85da7f545c71700471c2c488c61074f7 *data/smarto.rda
 fabdb9826da43909373428096ce48015 *inst/AUTHORS
